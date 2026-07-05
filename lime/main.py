@@ -9,9 +9,9 @@ from ctypes import CFUNCTYPE, c_int, c_float
 
 from Compiler import Compiler
 
-LEXER_DEBUG: bool = False
+LEXER_DEBUG: bool = True
 PARSER_DEBUG: bool = False
-COMPILER_DEBUG: bool = True
+COMPILER_DEBUG: bool = False
 
 
 def main():

@@ -1,4 +1,4 @@
-from Token import Token, TokenType
+from Token import Token, TokenType, lookup_keyword
 from typing import Any
 
 
@@ -19,6 +19,8 @@ class Lexer:
 
         if self.__is_digit(self.cur_char):
             return self.__read_number()
+        elif self.__is_ascii(self.cur_char):
+            return self.__read_keyword()
 
         match self.cur_char:
             case "+":
@@ -33,6 +35,10 @@ class Lexer:
                 tok = self.__new_token(TokenType.POW, self.cur_char)
             case "%":
                 tok = self.__new_token(TokenType.MODULO, self.cur_char)
+            case "=":
+                tok = self.__new_token(TokenType.ASSIGNMENT, self.cur_char)
+            case ":":
+                tok = self.__new_token(TokenType.COLON, self.cur_char)
             case ";":
                 tok = self.__new_token(TokenType.SEMICOLON, self.cur_char)
             case "(":
@@ -69,6 +75,15 @@ class Lexer:
 
         return self.__new_token(TokenType.FLOAT, float(output))
 
+    def __read_keyword(self) -> Token:
+        output = ""
+
+        while self.cur_char is not None and (self.__is_ascii(self.cur_char) or self.__is_digit(self.cur_char)):
+            output += self.cur_char
+            self.__read_char()
+
+        return self.__new_token(lookup_keyword(output), output)
+
     def __is_digit(self, ch: str | None) -> bool:
         return ch is not None and "0" <= ch <= "9"
 
@@ -95,3 +110,6 @@ class Lexer:
                 self.ln_number += 1
 
             self.__read_char()
+
+    def __is_ascii(self, ch: str) -> bool:
+        return ("a" <= ch and ch >= "z") or ("A" <= ch and ch >= "Z") or ch == "_"
