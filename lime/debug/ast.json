@@ -1,0 +1,30 @@
+{
+    "type": "Program",
+    "statements": [
+        {
+            "ExpressionStatement": {
+                "type": "ExpressionStatement",
+                "expr": {
+                    "type": "BinaryExpression",
+                    "left": {
+                        "type": "IntegerLiteral",
+                        "integer": 5
+                    },
+                    "operator": "POW",
+                    "right": {
+                        "type": "BinaryExpression",
+                        "left": {
+                            "type": "IntegerLiteral",
+                            "integer": 5
+                        },
+                        "operator": "POW",
+                        "right": {
+                            "type": "IntegerLiteral",
+                            "integer": 50
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
