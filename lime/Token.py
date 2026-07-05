@@ -6,6 +6,7 @@ class TokenType(Enum):
     # Special tokens
     EOF = "EOF"
     ILLEGAL = "ILLEGAL"
+    TYPE = "TYPE"
 
     # Data types
     IDENTIFIER = "IDENTIFIER"
@@ -51,7 +52,7 @@ KEYWORDS: dict[str, TokenType] = {
     "let": TokenType.LET,
 }
 
-TYPE_KEYWORDS: dict[str, TokenType] = {"int": TokenType.INT, "float": TokenType.FLOAT}
+TYPE_KEYWORDS: dict[str, TokenType] = {"int": TokenType.TYPE, "float": TokenType.TYPE}
 
 
 def lookup_keyword(kw: str) -> TokenType:

@@ -9,11 +9,13 @@ class NodeType(Enum):
 
     # Statements
     ExpressionStatement = "ExpressionStatement"
+    VariableDeclarationStatement = "VariableDeclarationStatement"
 
     # Expressions
     BinaryExpression = "BinaryExpression"
     IntegerLiteral = "IntegerLiteral"
     FloatLiteral = "FloatLiteral"
+    IdentifierLiteral = "IdentifierLiteral"
 
 
 class Node(ABC):
@@ -67,6 +69,30 @@ class ExpressionStatement(Statement):
         }
 
 
+class VariableDeclarationStatement(Statement):
+    def __init__(
+        self,
+        name: Expression | None = None,
+        value: Expression | None = None,
+        value_type: str | None = None,
+    ) -> None:
+        self.name = name
+        self.value = value
+        self.value_type = value_type
+
+    def type(self) -> NodeType:
+        return NodeType.VariableDeclarationStatement
+
+    def json(self) -> dict:
+        assert self.name is not None and self.value is not None
+        return {
+            "type": self.type().value,
+            "name": self.name.json(),
+            "value": self.value.json(),
+            "value_type": self.value_type,
+        }
+
+
 class BinaryExpression(Expression):
     def __init__(
         self, left: Expression, op: TokenType, right: Expression | None = None
@@ -114,3 +140,14 @@ class FloatLiteral(Expression):
 
     def json(self) -> dict:
         return {"type": self.type().value, "float": self.value}
+
+
+class IdentifierLiteral(Expression):
+    def __init__(self, value: str) -> None:
+        self.value = value
+
+    def type(self) -> NodeType:
+        return NodeType.IdentifierLiteral
+
+    def json(self) -> dict:
+        return {"type": self.type().value, "identifier": self.value}

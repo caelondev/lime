@@ -4,9 +4,9 @@ from typing import Callable
 from enum import Enum, auto
 
 from AST import Statement, Expression, Program
-from AST import ExpressionStatement
+from AST import ExpressionStatement, VariableDeclarationStatement
 from AST import BinaryExpression
-from AST import IntegerLiteral, FloatLiteral
+from AST import IntegerLiteral, FloatLiteral, IdentifierLiteral
 
 
 class PrecedenceType(Enum):
@@ -63,13 +63,18 @@ class Parser:
             stmt = self.__parse_stmt()
             if stmt is not None:
                 program.statements.append(stmt)
+                self.__recover()
             self.__next_token()
 
         return program
 
     # region Statement Parsers
     def __parse_stmt(self) -> Statement | None:
-        return self.__parse_expr_stmt()
+        match self.__cur().type:
+            case TokenType.LET:
+                return self.__parse_var_decl()
+            case _:
+                return self.__parse_expr_stmt()
 
     def __parse_expr_stmt(self) -> ExpressionStatement | None:
         expr = self.__parse_expr(PrecedenceType.P_LOWEST)
@@ -81,6 +86,39 @@ class Parser:
             return ExpressionStatement(expr)
 
         return None
+
+    def __parse_var_decl(self) -> VariableDeclarationStatement | None:
+        stmt: VariableDeclarationStatement = VariableDeclarationStatement()
+
+        if not self.__expect_peek(TokenType.IDENTIFIER):
+            self.__recover()
+            return None
+
+        stmt.name = IdentifierLiteral(self.__cur().literal)
+
+        if not self.__expect_peek(TokenType.COLON):
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.TYPE):
+            self.__recover()
+            return None
+
+        stmt.value_type = self.__cur().literal
+
+        if not self.__expect_peek(TokenType.ASSIGNMENT):
+            self.__recover()
+            return None
+
+        self.__next_token()  # eat ASSIGNMENT
+
+        stmt.value = self.__parse_expr(PrecedenceType.P_LOWEST)
+
+        if not self.__expect_peek(TokenType.SEMICOLON):
+            self.__recover()
+            return None
+
+        return stmt
 
     # endregion
 
@@ -217,5 +255,11 @@ class Parser:
 
     def __is_at_eof(self) -> bool:
         return self.cur_token is None or self.cur_token.type == TokenType.EOF
+
+    def __recover(self) -> None:
+        """skip tokens until a statement boundary (SEMICOLON) or EOF,
+        so one bad statement doesn't cascade into a pile of bogus errors."""
+        while not self.__cur_token_is(TokenType.SEMICOLON) and not self.__is_at_eof():
+            self.__next_token()
 
     # endregion

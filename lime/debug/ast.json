@@ -2,52 +2,17 @@
     "type": "Program",
     "statements": [
         {
-            "ExpressionStatement": {
-                "type": "ExpressionStatement",
-                "expr": {
-                    "type": "BinaryExpression",
-                    "left": {
-                        "type": "BinaryExpression",
-                        "left": {
-                            "type": "BinaryExpression",
-                            "left": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "IntegerLiteral",
-                                    "integer": 5
-                                },
-                                "operator": "PLUS",
-                                "right": {
-                                    "type": "IntegerLiteral",
-                                    "integer": 19
-                                }
-                            },
-                            "operator": "SLASH",
-                            "right": {
-                                "type": "IntegerLiteral",
-                                "integer": 6
-                            }
-                        },
-                        "operator": "ASTERISK",
-                        "right": {
-                            "type": "BinaryExpression",
-                            "left": {
-                                "type": "IntegerLiteral",
-                                "integer": 58
-                            },
-                            "operator": "MINUS",
-                            "right": {
-                                "type": "IntegerLiteral",
-                                "integer": 1
-                            }
-                        }
-                    },
-                    "operator": "PLUS",
-                    "right": {
-                        "type": "IntegerLiteral",
-                        "integer": 6
-                    }
-                }
+            "VariableDeclarationStatement": {
+                "type": "VariableDeclarationStatement",
+                "name": {
+                    "type": "IdentifierLiteral",
+                    "identifier": "test100"
+                },
+                "value": {
+                    "type": "IntegerLiteral",
+                    "integer": 100
+                },
+                "value_type": "int"
             }
         }
     ]

@@ -10,7 +10,7 @@ from ctypes import CFUNCTYPE, c_int, c_float
 from Compiler import Compiler
 
 LEXER_DEBUG: bool = True
-PARSER_DEBUG: bool = False
+PARSER_DEBUG: bool = True
 COMPILER_DEBUG: bool = False
 
 
