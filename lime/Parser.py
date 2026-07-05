@@ -1,5 +1,3 @@
-import re
-
 from Lexer import Lexer
 from Token import Token, TokenType
 from typing import Callable
@@ -122,6 +120,7 @@ class Parser:
             self.errors.append(
                 f"Expected expression after '{cur.type}' but found none."
             )
+
         bin_expr.right = right
 
         return bin_expr

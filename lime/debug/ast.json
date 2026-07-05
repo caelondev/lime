@@ -7,21 +7,45 @@
                 "expr": {
                     "type": "BinaryExpression",
                     "left": {
-                        "type": "IntegerLiteral",
-                        "integer": 5
-                    },
-                    "operator": "POW",
-                    "right": {
                         "type": "BinaryExpression",
                         "left": {
-                            "type": "IntegerLiteral",
-                            "integer": 5
+                            "type": "BinaryExpression",
+                            "left": {
+                                "type": "BinaryExpression",
+                                "left": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 5
+                                },
+                                "operator": "PLUS",
+                                "right": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 19
+                                }
+                            },
+                            "operator": "SLASH",
+                            "right": {
+                                "type": "IntegerLiteral",
+                                "integer": 6
+                            }
                         },
-                        "operator": "POW",
+                        "operator": "ASTERISK",
                         "right": {
-                            "type": "IntegerLiteral",
-                            "integer": 50
+                            "type": "BinaryExpression",
+                            "left": {
+                                "type": "IntegerLiteral",
+                                "integer": 58
+                            },
+                            "operator": "MINUS",
+                            "right": {
+                                "type": "IntegerLiteral",
+                                "integer": 1
+                            }
                         }
+                    },
+                    "operator": "PLUS",
+                    "right": {
+                        "type": "IntegerLiteral",
+                        "integer": 6
                     }
                 }
             }
