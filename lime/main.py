@@ -11,7 +11,7 @@ from Compiler import Compiler
 
 LEXER_DEBUG: bool = True
 PARSER_DEBUG: bool = True
-COMPILER_DEBUG: bool = False
+COMPILER_DEBUG: bool = True
 
 
 def main():

@@ -3,10 +3,12 @@ from typing import cast
 from llvmlite import ir
 
 from AST import Node, NodeType, Expression, Program
-from AST import ExpressionStatement
+from AST import ExpressionStatement, VariableDeclarationStatement
 from AST import BinaryExpression
-from AST import IntegerLiteral, FloatLiteral
+from AST import IntegerLiteral, FloatLiteral, IdentifierLiteral
 from Token import TokenType
+
+from Environment import Environment
 
 
 class Compiler:
@@ -18,6 +20,7 @@ class Compiler:
 
         self.module: ir.Module = ir.Module("main")
         self.builder: ir.IRBuilder = ir.IRBuilder()
+        self.env = Environment()
 
     def compile(self, node: Node) -> None:
         match node.type():
@@ -26,9 +29,14 @@ class Compiler:
 
             case NodeType.ExpressionStatement:
                 self.__visit_expr_stmt(cast(ExpressionStatement, node))
+            case NodeType.VariableDeclarationStatement:
+                self.__visit_var_decl_stmt(cast(VariableDeclarationStatement, node))
 
             case NodeType.BinaryExpression:
                 self.__visit_bin_expr(cast(BinaryExpression, node))
+
+            case _:
+                raise ValueError(f"Unhandled compile path {node.type()}")
 
     def __visit_program(self, node: Program) -> None:
         main_fn: str = "main"
@@ -51,18 +59,27 @@ class Compiler:
     def __visit_expr_stmt(self, node: ExpressionStatement) -> None:
         self.compile(node.expr)
 
+    def __visit_var_decl_stmt(self, node: VariableDeclarationStatement) -> None:
+        name_lit: IdentifierLiteral = cast(IdentifierLiteral, node.name)
+        val, t = self.__resolve_val(cast(Expression, node.value), node.value_type)
+
+        # allocate stack slot and store, then register the pointer + type
+        ptr = self.builder.alloca(t, name=name_lit.value)
+        self.builder.store(val, ptr)
+        self.env.define(name_lit.value, ptr, t)
+
     # endregion
 
-    # region Statements
+    # region Expression
     def __visit_bin_expr(self, node: BinaryExpression) -> tuple[ir.Value, ir.Type]:
         op = node.op
-        left, ltype = self.__resolve_val(node.left)
+        left, ltype = self.__resolve_val(cast(Expression, node.left))
         right, rtype = self.__resolve_val(cast(Expression, node.right))
 
-        val = None
-        typ = None
+        val: ir.Value | None = None
+        typ: ir.Type | None = None
 
-        if isinstance(rtype, ir.IntType) and isinstance(ltype, ir.IntType):
+        if isinstance(ltype, ir.IntType) and isinstance(rtype, ir.IntType):
             typ = self.type_map["int"]
             match op:
                 case TokenType.PLUS:
@@ -77,8 +94,10 @@ class Compiler:
                     val = self.builder.srem(left, right)
                 case TokenType.POW:
                     # TODO: add pow
-                    pass
-        elif isinstance(rtype, ir.FloatType) and isinstance(ltype, ir.FloatType):
+                    raise NotImplementedError("int pow not yet implemented")
+                case _:
+                    raise ValueError(f"Unsupported int binary operator {op}")
+        elif isinstance(ltype, ir.FloatType) and isinstance(rtype, ir.FloatType):
             typ = self.type_map["float"]
             match op:
                 case TokenType.PLUS:
@@ -93,7 +112,14 @@ class Compiler:
                     val = self.builder.frem(left, right)
                 case TokenType.POW:
                     # TODO: add pow
-                    pass
+                    raise NotImplementedError("float pow not yet implemented")
+                case _:
+                    raise ValueError(f"Unsupported float binary operator {op}")
+        else:
+            raise TypeError(
+                f"Mismatched or unsupported operand types in binary expr: "
+                f"{ltype} vs {rtype}"
+            )
 
         assert val is not None and typ is not None
         return val, typ
@@ -116,6 +142,14 @@ class Compiler:
                 key = val_type if val_type is not None else "float"
                 value, typ = float_node.value, self.type_map[key]
                 return ir.Constant(typ, value), typ
+
+            case NodeType.IdentifierLiteral:
+                ident_node: IdentifierLiteral = cast(IdentifierLiteral, node)
+                result = self.env.lookup(ident_node.value)
+                if result is None:
+                    raise NameError(f"undefined variable: {ident_node.value!r}")
+                ptr, t = result
+                return self.builder.load(ptr), t
 
             case NodeType.BinaryExpression:
                 return self.__visit_bin_expr(cast(BinaryExpression, node))
