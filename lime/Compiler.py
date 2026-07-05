@@ -73,6 +73,27 @@ class Compiler:
                     val = self.builder.mul(left, right)
                 case TokenType.SLASH:
                     val = self.builder.sdiv(left, right)
+                case TokenType.MODULO:
+                    val = self.builder.srem(left, right)
+                case TokenType.POW:
+                    # TODO: add pow
+                    pass
+        elif isinstance(rtype, ir.FloatType) and isinstance(ltype, ir.FloatType):
+            typ = self.type_map["float"]
+            match op:
+                case TokenType.PLUS:
+                    val = self.builder.fadd(left, right)
+                case TokenType.MINUS:
+                    val = self.builder.fsub(left, right)
+                case TokenType.ASTERISK:
+                    val = self.builder.fmul(left, right)
+                case TokenType.SLASH:
+                    val = self.builder.fdiv(left, right)
+                case TokenType.MODULO:
+                    val = self.builder.frem(left, right)
+                case TokenType.POW:
+                    # TODO: add pow
+                    pass
 
         assert val is not None and typ is not None
         return val, typ

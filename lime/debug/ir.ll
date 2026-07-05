@@ -5,10 +5,7 @@ target datalayout = ""
 define i32 @"main"()
 {
 main_entry:
-  %".2" = add i32 5, 19
-  %".3" = sdiv i32 %".2", 6
-  %".4" = sub i32 58, 1
-  %".5" = mul i32 %".3", %".4"
-  %".6" = add i32 %".5", 6
+  %".2" = fmul float 0x4011000000000000, 0x401c000000000000
+  %".3" = frem float %".2", 0x4000000000000000
   ret i32 0
 }
