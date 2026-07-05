@@ -6,13 +6,61 @@
                 "type": "VariableDeclarationStatement",
                 "name": {
                     "type": "IdentifierLiteral",
-                    "identifier": "test100"
+                    "identifier": "x"
                 },
                 "value": {
                     "type": "IntegerLiteral",
-                    "integer": 100
+                    "integer": 50
                 },
                 "value_type": "int"
+            }
+        },
+        {
+            "ExpressionStatement": {
+                "type": "ExpressionStatement",
+                "expr": {
+                    "type": "BinaryExpression",
+                    "left": {
+                        "type": "IdentifierLiteral",
+                        "identifier": "x"
+                    },
+                    "operator": "ASTERISK",
+                    "right": {
+                        "type": "IntegerLiteral",
+                        "integer": 100
+                    }
+                }
+            }
+        },
+        {
+            "VariableDeclarationStatement": {
+                "type": "VariableDeclarationStatement",
+                "name": {
+                    "type": "IdentifierLiteral",
+                    "identifier": "x"
+                },
+                "value": {
+                    "type": "FloatLiteral",
+                    "float": 50.0
+                },
+                "value_type": "float"
+            }
+        },
+        {
+            "ExpressionStatement": {
+                "type": "ExpressionStatement",
+                "expr": {
+                    "type": "BinaryExpression",
+                    "left": {
+                        "type": "IdentifierLiteral",
+                        "identifier": "x"
+                    },
+                    "operator": "ASTERISK",
+                    "right": {
+                        "type": "IntegerLiteral",
+                        "integer": 100
+                    }
+                }
             }
         }
     ]

@@ -60,13 +60,17 @@ class Compiler:
         self.compile(node.expr)
 
     def __visit_var_decl_stmt(self, node: VariableDeclarationStatement) -> None:
-        name_lit: IdentifierLiteral = cast(IdentifierLiteral, node.name)
+        name: str = cast(IdentifierLiteral, node.name).value
         val, t = self.__resolve_val(cast(Expression, node.value), node.value_type)
-
-        # allocate stack slot and store, then register the pointer + type
-        ptr = self.builder.alloca(t, name=name_lit.value)
-        self.builder.store(val, ptr)
-        self.env.define(name_lit.value, ptr, t)
+        if self.env.lookup(name) is None: # Declare
+            ptr = self.builder.alloca(t)
+            self.builder.store(val, ptr)
+            self.env.define(name, ptr, t)
+        else: # Reassign
+            res = self.env.lookup(name)
+            assert res is not None
+            ptr, _ = res
+            self.builder.store(val, ptr)
 
     # endregion
 
@@ -76,8 +80,8 @@ class Compiler:
         left, ltype = self.__resolve_val(cast(Expression, node.left))
         right, rtype = self.__resolve_val(cast(Expression, node.right))
 
-        val: ir.Value | None = None
-        typ: ir.Type | None = None
+        val = None
+        typ = None
 
         if isinstance(ltype, ir.IntType) and isinstance(rtype, ir.IntType):
             typ = self.type_map["int"]
@@ -149,7 +153,8 @@ class Compiler:
                 if result is None:
                     raise NameError(f"undefined variable: {ident_node.value!r}")
                 ptr, t = result
-                return self.builder.load(ptr), t
+                val = self.builder.load(ptr)
+                return val, t
 
             case NodeType.BinaryExpression:
                 return self.__visit_bin_expr(cast(BinaryExpression, node))

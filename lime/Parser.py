@@ -42,6 +42,7 @@ class Parser:
         self.nud_fns: dict[TokenType, Callable] = {
             TokenType.INT: self.__parse_int_literal,
             TokenType.FLOAT: self.__parse_float_literal,
+            TokenType.IDENTIFIER: self.__parse_identifier_literal,
             TokenType.LEFT_PARENTHESIS: self.__parse_grouped_expr,
         }
         self.led_fns: dict[TokenType, Callable] = {
@@ -188,6 +189,9 @@ class Parser:
             self.errors.append(f"Could not parse '{cur.literal}' as an integer.")
             return None
         return IntegerLiteral(value)
+
+    def __parse_identifier_literal(self) -> Expression | None:
+        return IdentifierLiteral(self.__cur().literal)
 
     def __parse_float_literal(self) -> Expression | None:
         cur = self.__cur()
