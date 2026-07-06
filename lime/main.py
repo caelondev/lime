@@ -51,6 +51,11 @@ def main():
 
     comp.compile(p)
 
+    if len(comp.errors) != 0:
+        for e in comp.errors:
+            print(e)
+        exit(1)
+
     if COMPILER_DEBUG:
         with open("debug/ir.ll", "w") as f:
             f.write(str(mod))

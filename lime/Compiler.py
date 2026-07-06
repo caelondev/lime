@@ -27,6 +27,7 @@ class Compiler:
         self.module: ir.Module = ir.Module("main")
         self.builder: ir.IRBuilder = ir.IRBuilder()
         self.env = Environment()
+        self.errors: list[str] = []
 
     def compile(self, node: Node) -> None:
         match node.type():
@@ -68,7 +69,7 @@ class Compiler:
             self.builder.store(val, ptr)
             self.env.define(name, ptr, t)
         else:
-            raise ValueError(f"Cannot redeclare identifier '{name}' in the same scope")
+            self.__error(f"Cannot redeclare identifier '{name}' in the same scope")
 
     def __visit_block_stmt(self, node: BlockStatement) -> None:
         for stmt in node.statements:
@@ -212,5 +213,8 @@ class Compiler:
 
             case _:
                 raise ValueError(f"Unhandled __resolve_val path {node.type()}")
+
+    def __error(self, msg: str) -> None:
+        self.errors.append(msg)
 
     # endregion
