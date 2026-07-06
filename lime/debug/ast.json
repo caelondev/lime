@@ -20,10 +20,10 @@
                                 "identifier": "a"
                             },
                             "value": {
-                                "type": "BooleanLiteral",
-                                "boolean": true
+                                "type": "IntegerLiteral",
+                                "integer": 1
                             },
-                            "value_type": "bool"
+                            "value_type": "int"
                         },
                         {
                             "type": "VariableDeclarationStatement",
@@ -32,8 +32,16 @@
                                 "identifier": "b"
                             },
                             "value": {
-                                "type": "BooleanLiteral",
-                                "boolean": false
+                                "type": "BinaryExpression",
+                                "left": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "a"
+                                },
+                                "operator": "EQUAL",
+                                "right": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "a"
+                                }
                             },
                             "value_type": "bool"
                         },

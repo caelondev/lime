@@ -1,6 +1,6 @@
 fn main() -> int {
-  let a: bool = true;
-  let b: bool = false;
+  let a: int = 1;
+  let b: bool = a == a;
 
   return 0;
 }

@@ -124,8 +124,20 @@ class Compiler:
 
         val = None
         typ = None
+        op_map = {
+            TokenType.EQUAL: "==",
+            TokenType.NOT_EQUAL: "!=",
+            TokenType.LESS: "<",
+            TokenType.LESS_EQUAL: "<=",
+            TokenType.GREATER: ">",
+            TokenType.GREATER_EQUAL: ">=",
+        }
 
         if isinstance(ltype, ir.IntType) and isinstance(rtype, ir.IntType):
+            if node.op in op_map:
+                result = self.builder.icmp_signed(op_map[node.op], left, right)
+                return result, self.type_map["bool"]
+
             typ = self.type_map["int"]
             match op:
                 case TokenType.PLUS:
@@ -144,6 +156,10 @@ class Compiler:
                 case _:
                     raise ValueError(f"Unsupported int binary operator {op}")
         elif isinstance(ltype, ir.FloatType) and isinstance(rtype, ir.FloatType):
+            if node.op in op_map:
+                result = self.builder.fcmp_ordered(op_map[node.op], left, right)
+                return result, self.type_map["bool"]
+
             typ = self.type_map["float"]
             match op:
                 case TokenType.PLUS:
