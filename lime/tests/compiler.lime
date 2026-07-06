@@ -1,3 +1,4 @@
-let x: int = 50;
-
-x * 100;
+fn main() -> int {
+  let a: int = 4;
+  return a;
+}

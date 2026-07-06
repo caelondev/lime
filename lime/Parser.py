@@ -3,7 +3,14 @@ from Token import Token, TokenType
 from typing import Callable
 from enum import Enum, auto
 
-from AST import Statement, Expression, Program
+from AST import (
+    BlockStatement,
+    FunctionDeclarationStatement,
+    ReturnStatement,
+    Statement,
+    Expression,
+    Program,
+)
 from AST import ExpressionStatement, VariableDeclarationStatement
 from AST import BinaryExpression
 from AST import IntegerLiteral, FloatLiteral, IdentifierLiteral
@@ -73,7 +80,11 @@ class Parser:
     def __parse_stmt(self) -> Statement | None:
         match self.__cur().type:
             case TokenType.LET:
-                return self.__parse_var_decl()
+                return self.__parse_var_decl_stmt()
+            case TokenType.FN:
+                return self.__parse_fn_decl_stmt()
+            case TokenType.RETURN:
+                return self.__parse_return_stmt()
             case _:
                 return self.__parse_expr_stmt()
 
@@ -88,7 +99,7 @@ class Parser:
 
         return None
 
-    def __parse_var_decl(self) -> VariableDeclarationStatement | None:
+    def __parse_var_decl_stmt(self) -> VariableDeclarationStatement | None:
         stmt: VariableDeclarationStatement = VariableDeclarationStatement()
 
         if not self.__expect_peek(TokenType.IDENTIFIER):
@@ -120,6 +131,85 @@ class Parser:
             return None
 
         return stmt
+
+    def __parse_return_stmt(self) -> ReturnStatement | None:
+        ret = ReturnStatement()
+        if self.__peek_token_is(TokenType.SEMICOLON):
+            self.__next_token()
+            return ret
+
+        self.__next_token()  # eat RETURN
+
+        ret.value = self.__parse_expr(PrecedenceType.P_LOWEST)
+
+        if not self.__expect_peek(TokenType.SEMICOLON):
+            self.__recover()
+            return None
+
+        return ret
+
+    def __parse_fn_decl_stmt(self) -> FunctionDeclarationStatement | None:
+        fn_stmt = FunctionDeclarationStatement()
+        if not self.__expect_peek(TokenType.IDENTIFIER):
+            self.__recover()
+            return None
+
+        fn_stmt.name = IdentifierLiteral(self.__cur().literal)
+
+        if not self.__expect_peek(TokenType.LEFT_PARENTHESIS):
+            self.__recover()
+            return None
+
+        # TODO: Parse params
+
+        if not self.__expect_peek(TokenType.RIGHT_PARENTHESIS):
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.ARROW):
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.TYPE):
+            self.__recover()
+            return None
+
+        fn_stmt.ret_type = self.__cur().literal
+
+        if not self.__expect_peek(TokenType.LEFT_BRACE):
+            self.__recover()
+            return None
+
+        body = self.__parse_block_stmt()
+        if body is None:
+            self.__recover()
+            return None
+
+        fn_stmt.body = body
+
+        return fn_stmt
+
+    # endregion
+
+    # region Statement Helpers
+    def __parse_block_stmt(self) -> BlockStatement | None:
+        stmts: list[Statement] = []
+
+        self.__next_token()  # eat LEFT_BRACE
+
+        while not self.__is_at_eof() and not self.__cur_token_is(TokenType.RIGHT_BRACE):
+            stmt = self.__parse_stmt()
+            if stmt is None:
+                return None
+
+            stmts.append(stmt)
+            self.__next_token()
+
+        if not self.__expect_cur(TokenType.RIGHT_BRACE):
+            self.__recover()
+            return None
+
+        return BlockStatement(stmts)
 
     # endregion
 
@@ -249,9 +339,22 @@ class Parser:
         self.__peek_error(tt)
         return False
 
+    def __expect_cur(self, tt: TokenType) -> bool:
+        if self.__cur_token_is(tt):
+            self.__next_token()
+            return True
+
+        self.__cur_error(tt)
+        return False
+
     def __peek_error(self, tt: TokenType):
         self.errors.append(
             f"Expected next token to be {tt} but got {self.peek_token} instead."
+        )
+
+    def __cur_error(self, tt: TokenType):
+        self.errors.append(
+            f"Expected current token to be {tt} but got {self.cur_token} instead."
         )
 
     def __no_nud_parse_fn_error(self, tt: TokenType):

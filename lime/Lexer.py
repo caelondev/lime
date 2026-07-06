@@ -26,7 +26,12 @@ class Lexer:
             case "+":
                 tok = self.__new_token(TokenType.PLUS, self.cur_char)
             case "-":
-                tok = self.__new_token(TokenType.MINUS, self.cur_char)
+                if self.__peak_char() == ">":
+                    ch = self.cur_char
+                    self.__read_char()
+                    tok = self.__new_token(TokenType.ARROW, ch + self.cur_char)
+                else:
+                    tok = self.__new_token(TokenType.MINUS, self.cur_char)
             case "*":
                 tok = self.__new_token(TokenType.ASTERISK, self.cur_char)
             case "/":
@@ -45,6 +50,10 @@ class Lexer:
                 tok = self.__new_token(TokenType.LEFT_PARENTHESIS, self.cur_char)
             case ")":
                 tok = self.__new_token(TokenType.RIGHT_PARENTHESIS, self.cur_char)
+            case "{":
+                tok = self.__new_token(TokenType.LEFT_BRACE, self.cur_char)
+            case "}":
+                tok = self.__new_token(TokenType.RIGHT_BRACE, self.cur_char)
             case _:
                 tok = self.__new_token(TokenType.ILLEGAL, self.cur_char)
 
@@ -78,7 +87,9 @@ class Lexer:
     def __read_keyword(self) -> Token:
         output = ""
 
-        while self.cur_char is not None and (self.__is_ascii(self.cur_char) or self.__is_digit(self.cur_char)):
+        while self.cur_char is not None and (
+            self.__is_ascii(self.cur_char) or self.__is_digit(self.cur_char)
+        ):
             output += self.cur_char
             self.__read_char()
 
@@ -94,6 +105,12 @@ class Lexer:
             ln_number=self.ln_number,
             pos=self.position,
         )
+
+    def __peak_char(self) -> str | None:
+        if self.read_pos >= len(self.source):
+            return None
+
+        return self.source[self.read_pos]
 
     def __read_char(self) -> None:
         if self.read_pos >= len(self.source):
@@ -112,4 +129,4 @@ class Lexer:
             self.__read_char()
 
     def __is_ascii(self, ch: str) -> bool:
-        return ("a" <= ch and ch >= "z") or ("A" <= ch and ch >= "Z") or ch == "_"
+        return ("a" <= ch <= "z") or ("A" <= ch <= "Z") or ch == "_"

@@ -24,14 +24,19 @@ class TokenType(Enum):
     # Symbols
     COLON = "COLON"
     SEMICOLON = "SEMICOLON"
+    ARROW = "ARROW"
     LEFT_PARENTHESIS = "LEFT_PARENTHESIS"
     RIGHT_PARENTHESIS = "RIGHT_PARENTHESIS"
+    LEFT_BRACE = "LEFT_BRACE"
+    RIGHT_BRACE = "RIGHT_BRACE"
 
     # Assignment tokens
     ASSIGNMENT = "ASSIGNMENT"
 
     # Keywords
     LET = "LET"
+    FN = "FN"
+    RETURN = "RETURN"
 
 
 class Token:
@@ -50,6 +55,8 @@ class Token:
 
 KEYWORDS: dict[str, TokenType] = {
     "let": TokenType.LET,
+    "fn": TokenType.FN,
+    "return": TokenType.RETURN,
 }
 
 TYPE_KEYWORDS: dict[str, TokenType] = {"int": TokenType.TYPE, "float": TokenType.TYPE}

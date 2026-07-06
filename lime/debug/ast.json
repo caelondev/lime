@@ -2,64 +2,37 @@
     "type": "Program",
     "statements": [
         {
-            "VariableDeclarationStatement": {
-                "type": "VariableDeclarationStatement",
+            "FunctionDeclarationStatement": {
+                "type": "FunctionDeclarationStatement",
                 "name": {
                     "type": "IdentifierLiteral",
-                    "identifier": "x"
+                    "identifier": "main"
                 },
-                "value": {
-                    "type": "IntegerLiteral",
-                    "integer": 50
-                },
-                "value_type": "int"
-            }
-        },
-        {
-            "ExpressionStatement": {
-                "type": "ExpressionStatement",
-                "expr": {
-                    "type": "BinaryExpression",
-                    "left": {
-                        "type": "IdentifierLiteral",
-                        "identifier": "x"
-                    },
-                    "operator": "ASTERISK",
-                    "right": {
-                        "type": "IntegerLiteral",
-                        "integer": 100
-                    }
-                }
-            }
-        },
-        {
-            "VariableDeclarationStatement": {
-                "type": "VariableDeclarationStatement",
-                "name": {
-                    "type": "IdentifierLiteral",
-                    "identifier": "x"
-                },
-                "value": {
-                    "type": "FloatLiteral",
-                    "float": 50.0
-                },
-                "value_type": "float"
-            }
-        },
-        {
-            "ExpressionStatement": {
-                "type": "ExpressionStatement",
-                "expr": {
-                    "type": "BinaryExpression",
-                    "left": {
-                        "type": "IdentifierLiteral",
-                        "identifier": "x"
-                    },
-                    "operator": "ASTERISK",
-                    "right": {
-                        "type": "IntegerLiteral",
-                        "integer": 100
-                    }
+                "params": [],
+                "ret_type": "int",
+                "body": {
+                    "type": "BlockStatement",
+                    "statements": [
+                        {
+                            "type": "VariableDeclarationStatement",
+                            "name": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "a"
+                            },
+                            "value": {
+                                "type": "IntegerLiteral",
+                                "integer": 4
+                            },
+                            "value_type": "int"
+                        },
+                        {
+                            "type": "ReturnStatement",
+                            "return_value": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "a"
+                            }
+                        }
+                    ]
                 }
             }
         }

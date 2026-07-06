@@ -10,6 +10,9 @@ class NodeType(Enum):
     # Statements
     ExpressionStatement = "ExpressionStatement"
     VariableDeclarationStatement = "VariableDeclarationStatement"
+    FunctionDeclarationStatement = "FunctionDeclarationStatement"
+    BlockStatement = "BlockStatement"
+    ReturnStatement = "ReturnStatement"
 
     # Expressions
     BinaryExpression = "BinaryExpression"
@@ -91,6 +94,65 @@ class VariableDeclarationStatement(Statement):
             "value": self.value.json(),
             "value_type": self.value_type,
         }
+
+
+class BlockStatement(Statement):
+    def __init__(self, statements: list[Statement]) -> None:
+        self.statements = statements
+
+    def type(self) -> NodeType:
+        return NodeType.BlockStatement
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "statements": [stmt.json() for stmt in self.statements],
+        }
+
+
+class FunctionDeclarationStatement(Statement):
+    def __init__(
+        self,
+        name=None,
+        params: list[Expression] = [],
+        ret_type: str | None = None,
+        body: BlockStatement | None = None,
+    ) -> None:
+        self.params = params
+        self.body = body
+        self.ret_type = ret_type
+        self.name = name
+
+    def type(self) -> NodeType:
+        return NodeType.FunctionDeclarationStatement
+
+    def json(self) -> dict:
+        assert (
+            self.ret_type is not None
+            and self.body is not None
+            and self.name is not None
+        )
+        return {
+            "type": self.type().value,
+            "name": self.name.json(),
+            "params": [expr.json() for expr in self.params],
+            "ret_type": self.ret_type,
+            "body": self.body.json(),
+        }
+
+
+class ReturnStatement(Statement):
+    def __init__(self, value: Expression | None = None) -> None:
+        self.value = value
+
+    def type(self) -> NodeType:
+        return NodeType.ReturnStatement
+
+    def json(self) -> dict:
+        if self.value is not None:
+            return {"type": self.type().value, "return_value": self.value.json()}
+
+        return {"type": self.type().value, "return_value": None}
 
 
 class BinaryExpression(Expression):
