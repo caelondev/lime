@@ -35,6 +35,49 @@
                     ]
                 }
             }
+        },
+        {
+            "FunctionDeclarationStatement": {
+                "type": "FunctionDeclarationStatement",
+                "name": {
+                    "type": "IdentifierLiteral",
+                    "identifier": "apple"
+                },
+                "params": [],
+                "ret_type": "int",
+                "body": {
+                    "type": "BlockStatement",
+                    "statements": [
+                        {
+                            "type": "VariableDeclarationStatement",
+                            "name": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "value"
+                            },
+                            "value": {
+                                "type": "IntegerLiteral",
+                                "integer": 69
+                            },
+                            "value_type": "int"
+                        },
+                        {
+                            "type": "ReturnStatement",
+                            "return_value": {
+                                "type": "BinaryExpression",
+                                "left": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "value"
+                                },
+                                "operator": "ASTERISK",
+                                "right": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 69
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
         }
     ]
 }

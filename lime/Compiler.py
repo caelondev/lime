@@ -3,7 +3,13 @@ from typing import cast
 from llvmlite import ir
 
 from AST import Node, NodeType, Expression, Program
-from AST import ExpressionStatement, VariableDeclarationStatement
+from AST import (
+    ExpressionStatement,
+    VariableDeclarationStatement,
+    FunctionDeclarationStatement,
+    BlockStatement,
+    ReturnStatement,
+)
 from AST import BinaryExpression
 from AST import IntegerLiteral, FloatLiteral, IdentifierLiteral
 from Token import TokenType
@@ -31,6 +37,12 @@ class Compiler:
                 self.__visit_expr_stmt(cast(ExpressionStatement, node))
             case NodeType.VariableDeclarationStatement:
                 self.__visit_var_decl_stmt(cast(VariableDeclarationStatement, node))
+            case NodeType.FunctionDeclarationStatement:
+                self.__visit_fn_decl_stmt(cast(FunctionDeclarationStatement, node))
+            case NodeType.BlockStatement:
+                self.__visit_block_stmt(cast(BlockStatement, node))
+            case NodeType.ReturnStatement:
+                self.__visit_ret_stmt(cast(ReturnStatement, node))
 
             case NodeType.BinaryExpression:
                 self.__visit_bin_expr(cast(BinaryExpression, node))
@@ -39,21 +51,8 @@ class Compiler:
                 raise ValueError(f"Unhandled compile path {node.type()}")
 
     def __visit_program(self, node: Program) -> None:
-        main_fn: str = "main"
-        param_types: list[ir.Type] = []
-        return_type: ir.Type = self.type_map["int"]
-
-        fn_type = ir.FunctionType(return_type, param_types)
-        fn = ir.Function(self.module, fn_type, name=main_fn)
-
-        block = fn.append_basic_block(f"{main_fn}_entry")
-        self.builder = ir.IRBuilder(block)
-
         for stmt in node.statements:
             self.compile(stmt)
-
-        ret_val: ir.Constant = ir.Constant(self.type_map["int"], 0)
-        self.builder.ret(ret_val)
 
     # region Statements
     def __visit_expr_stmt(self, node: ExpressionStatement) -> None:
@@ -62,15 +61,50 @@ class Compiler:
     def __visit_var_decl_stmt(self, node: VariableDeclarationStatement) -> None:
         name: str = cast(IdentifierLiteral, node.name).value
         val, t = self.__resolve_val(cast(Expression, node.value), node.value_type)
-        if self.env.lookup(name) is None: # Declare
+        if self.env.lookup(name) is None:
             ptr = self.builder.alloca(t)
             self.builder.store(val, ptr)
             self.env.define(name, ptr, t)
-        else: # Reassign
+        else:  # Reassign
             res = self.env.lookup(name)
             assert res is not None
             ptr, _ = res
             self.builder.store(val, ptr)
+
+    def __visit_block_stmt(self, node: BlockStatement) -> None:
+        for stmt in node.statements:
+            self.compile(stmt)
+
+    def __visit_ret_stmt(self, node: ReturnStatement) -> None:
+        val_expr: Expression = cast(Expression, node.value)
+        val, _ = self.__resolve_val(val_expr)
+
+        self.builder.ret(val)
+
+    def __visit_fn_decl_stmt(self, node: FunctionDeclarationStatement) -> None:
+        assert node.body is not None and node.ret_type is not None
+
+        name: str = cast(IdentifierLiteral, node.name).value
+        body: BlockStatement = node.body
+        params: list[IdentifierLiteral] = node.params
+        _param_names: list[str] = [p.value for p in params]
+        _param_types: list[ir.Type] = []  # TODO: Implement params
+        ret_type: ir.Type = self.type_map[node.ret_type]
+
+        fn_type = ir.FunctionType(ret_type, params)
+        fn = ir.Function(self.module, fn_type, name)
+
+        prev_builder = self.builder
+        prev_env = self.env
+
+        block: ir.Block = fn.append_basic_block(f"{name}_entry")
+        self.env = Environment(parent=self.env)
+        self.builder = ir.IRBuilder(block)
+
+        self.compile(body)
+
+        self.env = prev_env
+        self.builder = prev_builder
 
     # endregion
 

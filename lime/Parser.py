@@ -71,6 +71,7 @@ class Parser:
             stmt = self.__parse_stmt()
             if stmt is not None:
                 program.statements.append(stmt)
+            else:
                 self.__recover()
             self.__next_token()
 
@@ -205,8 +206,8 @@ class Parser:
             stmts.append(stmt)
             self.__next_token()
 
-        if not self.__expect_cur(TokenType.RIGHT_BRACE):
-            self.__recover()
+        if not self.__cur_token_is(TokenType.RIGHT_BRACE):
+            self.errors.append("Expected closing '}' for block statement.")
             return None
 
         return BlockStatement(stmts)

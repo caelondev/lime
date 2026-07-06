@@ -114,7 +114,7 @@ class FunctionDeclarationStatement(Statement):
     def __init__(
         self,
         name=None,
-        params: list[Expression] = [],
+        params: list = [],
         ret_type: str | None = None,
         body: BlockStatement | None = None,
     ) -> None:
