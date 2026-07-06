@@ -18,6 +18,7 @@ class NodeType(Enum):
     # Expressions
     AssignmentExpression = "AssignmentExpression"
     BinaryExpression = "BinaryExpression"
+    CallExpression = "CallExpression"
     IntegerLiteral = "IntegerLiteral"
     FloatLiteral = "FloatLiteral"
     BooleanLiteral = "BooleanLiteral"
@@ -228,6 +229,22 @@ class AssignmentExpression(Expression):
             "type": self.type().value,
             "assignee": self.left.json(),
             "value": self.right.json(),
+        }
+
+
+class CallExpression(Expression):
+    def __init__(self, callee: Expression, args: list[Expression]) -> None:
+        self.callee = callee
+        self.args = args if args else []
+
+    def type(self) -> NodeType:
+        return NodeType.CallExpression
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "callee": self.callee.json(),
+            "args": [arg.json() for arg in self.args],
         }
 
 

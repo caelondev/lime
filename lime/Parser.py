@@ -7,6 +7,7 @@ from AST import (
     AssignmentExpression,
     BlockStatement,
     BooleanLiteral,
+    CallExpression,
     FunctionDeclarationStatement,
     IfStatement,
     ReturnStatement,
@@ -47,6 +48,7 @@ PRECEDENCES = {
     TokenType.SLASH: PrecedenceType.P_MULTIPLICATIVE,
     TokenType.MODULO: PrecedenceType.P_MULTIPLICATIVE,
     TokenType.POW: PrecedenceType.P_POWER,
+    TokenType.LEFT_PARENTHESIS: PrecedenceType.P_CALL,
 }
 
 
@@ -75,6 +77,7 @@ class Parser:
             TokenType.ASSIGNMENT: self.__parse_assignment_expr,
             TokenType.LESS: self.__parse_binary_expr,
             TokenType.GREATER: self.__parse_binary_expr,
+            TokenType.LEFT_PARENTHESIS: self.__parse_call_expr,
             TokenType.LESS_EQUAL: self.__parse_binary_expr,
             TokenType.GREATER_EQUAL: self.__parse_binary_expr,
             TokenType.EQUAL: self.__parse_binary_expr,
@@ -319,6 +322,14 @@ class Parser:
 
         return bin_expr
 
+    def __parse_call_expr(self, left: Expression) -> CallExpression | None:
+        # TODO: Parse args
+        if not self.__expect_peek(TokenType.RIGHT_PARENTHESIS):
+            self.__recover()
+            return None
+
+        return CallExpression(callee=left, args=[])
+
     def __parse_pow_expr(self, left: Expression) -> Expression:
         cur = self.__cur()
         bin_expr = BinaryExpression(left, cur.type)
@@ -424,13 +435,13 @@ class Parser:
         self.__peek_error(tt)
         return False
 
-    def __expect_cur(self, tt: TokenType) -> bool:
-        if self.__cur_token_is(tt):
-            self.__next_token()
-            return True
-
-        self.__cur_error(tt)
-        return False
+    # def __expect_cur(self, tt: TokenType) -> bool:
+    #     if self.__cur_token_is(tt):
+    #         self.__next_token()
+    #         return True
+    #
+    #     self.__cur_error(tt)
+    #     return False
 
     def __peek_error(self, tt: TokenType):
         self.errors.append(
