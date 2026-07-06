@@ -1,6 +1,13 @@
 fn main() -> int {
   let a: int = 1;
-  let b: bool = a == a;
 
-  return 0;
+  if a == 1 {
+    a = 0
+  } else if a== 2 {
+    a = 1
+  } else {
+    a = 2
+  }
+
+  return a;
 }

@@ -44,6 +44,8 @@ class TokenType(Enum):
     # Keywords
     LET = "LET"
     FN = "FN"
+    IF = "IF"
+    ELSE = "ELSE"
     RETURN = "RETURN"
     TRUE = "TRUE"
     FALSE = "FALSE"
@@ -67,6 +69,8 @@ KEYWORDS: dict[str, TokenType] = {
     "let": TokenType.LET,
     "fn": TokenType.FN,
     "return": TokenType.RETURN,
+    "if": TokenType.IF,
+    "else": TokenType.ELSE,
     "true": TokenType.TRUE,
     "false": TokenType.FALSE,
 }

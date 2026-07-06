@@ -10,6 +10,7 @@ class NodeType(Enum):
     # Statements
     ExpressionStatement = "ExpressionStatement"
     VariableDeclarationStatement = "VariableDeclarationStatement"
+    IfStatement = "IfStatement"
     FunctionDeclarationStatement = "FunctionDeclarationStatement"
     BlockStatement = "BlockStatement"
     ReturnStatement = "ReturnStatement"
@@ -74,6 +75,20 @@ class ExpressionStatement(Statement):
         }
 
 
+class BlockStatement(Statement):
+    def __init__(self, statements: list[Statement]) -> None:
+        self.statements = statements
+
+    def type(self) -> NodeType:
+        return NodeType.BlockStatement
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "statements": [stmt.json() for stmt in self.statements],
+        }
+
+
 class VariableDeclarationStatement(Statement):
     def __init__(
         self,
@@ -98,17 +113,32 @@ class VariableDeclarationStatement(Statement):
         }
 
 
-class BlockStatement(Statement):
-    def __init__(self, statements: list[Statement]) -> None:
-        self.statements = statements
+class IfStatement(Statement):
+    def __init__(
+        self,
+        condition: Expression,
+        consequence: BlockStatement,
+        alternate: Statement | None,
+    ) -> None:
+        self.condition = condition
+        self.consequence = consequence
+        self.alternate = alternate
 
     def type(self) -> NodeType:
-        return NodeType.BlockStatement
+        return NodeType.IfStatement
 
     def json(self) -> dict:
+        if self.alternate is None:
+            return {
+                "type": self.type().value,
+                "condition": self.condition.json(),
+                "consequence": self.consequence.json(),
+            }
         return {
             "type": self.type().value,
-            "statements": [stmt.json() for stmt in self.statements],
+            "condition": self.condition.json(),
+            "consequence": self.consequence.json(),
+            "alternate": self.alternate.json(),
         }
 
 

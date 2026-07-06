@@ -26,12 +26,8 @@
                             "value_type": "int"
                         },
                         {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "b"
-                            },
-                            "value": {
+                            "type": "IfStatement",
+                            "condition": {
                                 "type": "BinaryExpression",
                                 "left": {
                                     "type": "IdentifierLiteral",
@@ -39,17 +35,88 @@
                                 },
                                 "operator": "EQUAL",
                                 "right": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "a"
+                                    "type": "IntegerLiteral",
+                                    "integer": 1
                                 }
                             },
-                            "value_type": "bool"
+                            "consequence": {
+                                "type": "BlockStatement",
+                                "statements": [
+                                    {
+                                        "type": "ExpressionStatement",
+                                        "expr": {
+                                            "type": "AssignmentExpression",
+                                            "assignee": {
+                                                "type": "IdentifierLiteral",
+                                                "identifier": "a"
+                                            },
+                                            "value": {
+                                                "type": "IntegerLiteral",
+                                                "integer": 0
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "alternate": {
+                                "type": "IfStatement",
+                                "condition": {
+                                    "type": "BinaryExpression",
+                                    "left": {
+                                        "type": "IdentifierLiteral",
+                                        "identifier": "a"
+                                    },
+                                    "operator": "EQUAL",
+                                    "right": {
+                                        "type": "IntegerLiteral",
+                                        "integer": 2
+                                    }
+                                },
+                                "consequence": {
+                                    "type": "BlockStatement",
+                                    "statements": [
+                                        {
+                                            "type": "ExpressionStatement",
+                                            "expr": {
+                                                "type": "AssignmentExpression",
+                                                "assignee": {
+                                                    "type": "IdentifierLiteral",
+                                                    "identifier": "a"
+                                                },
+                                                "value": {
+                                                    "type": "IntegerLiteral",
+                                                    "integer": 1
+                                                }
+                                            }
+                                        }
+                                    ]
+                                },
+                                "alternate": {
+                                    "type": "BlockStatement",
+                                    "statements": [
+                                        {
+                                            "type": "ExpressionStatement",
+                                            "expr": {
+                                                "type": "AssignmentExpression",
+                                                "assignee": {
+                                                    "type": "IdentifierLiteral",
+                                                    "identifier": "a"
+                                                },
+                                                "value": {
+                                                    "type": "IntegerLiteral",
+                                                    "integer": 2
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
                         },
                         {
                             "type": "ReturnStatement",
                             "return_value": {
-                                "type": "IntegerLiteral",
-                                "integer": 0
+                                "type": "IdentifierLiteral",
+                                "identifier": "a"
                             }
                         }
                     ]

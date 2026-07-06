@@ -1,6 +1,6 @@
 from Lexer import Lexer
 from Token import Token, TokenType
-from typing import Callable
+from typing import Callable, cast
 from enum import Enum, auto
 
 from AST import (
@@ -8,6 +8,7 @@ from AST import (
     BlockStatement,
     BooleanLiteral,
     FunctionDeclarationStatement,
+    IfStatement,
     ReturnStatement,
     Statement,
     Expression,
@@ -105,6 +106,8 @@ class Parser:
                 return self.__parse_fn_decl_stmt()
             case TokenType.RETURN:
                 return self.__parse_return_stmt()
+            case TokenType.IF:
+                return self.__parse_if_stmt()
             case _:
                 return self.__parse_expr_stmt()
 
@@ -151,6 +154,48 @@ class Parser:
             return None
 
         return stmt
+
+    def __parse_if_stmt(self) -> IfStatement | None:
+        self.__next_token()
+        condition = self.__parse_expr(PrecedenceType.P_LOWEST)
+        if condition is None:
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.LEFT_BRACE):
+            self.__recover()
+            return None
+
+        consequence = self.__parse_block_stmt()
+        if consequence is None:
+            self.__recover()
+            return None
+
+        if not self.__peek_token_is(TokenType.ELSE):
+            return IfStatement(condition, consequence, alternate=None)
+
+        self.__next_token()  # eat RIGHT_BRACE
+
+        # else if ...
+        if self.__peek_token_is(TokenType.IF):
+            self.__next_token()  # eat ELSE, cur is now IF
+            alternate = self.__parse_if_stmt()
+            if alternate is None:
+                self.__recover()
+                return None
+            return IfStatement(condition, consequence, cast(Statement, alternate))
+
+        # else { ... }
+        if not self.__expect_peek(TokenType.LEFT_BRACE):
+            self.__recover()
+            return None
+
+        alternate = self.__parse_block_stmt()
+        if alternate is None:
+            self.__recover()
+            return None
+
+        return IfStatement(condition, consequence, cast(Statement, alternate))
 
     def __parse_return_stmt(self) -> ReturnStatement | None:
         ret = ReturnStatement()
