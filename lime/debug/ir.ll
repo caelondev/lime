@@ -10,13 +10,3 @@ main_entry:
   %".4" = load i32, i32* %".2"
   ret i32 %".4"
 }
-
-define i32 @"apple"()
-{
-apple_entry:
-  %".2" = alloca i32
-  store i32 69, i32* %".2"
-  %".4" = load i32, i32* %".2"
-  %".5" = mul i32 %".4", 69
-  ret i32 %".5"
-}
