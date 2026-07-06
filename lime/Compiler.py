@@ -2,7 +2,7 @@ from typing import cast
 
 from llvmlite import ir
 
-from AST import Node, NodeType, Expression, Program
+from AST import AssignmentExpression, Node, NodeType, Expression, Program
 from AST import (
     ExpressionStatement,
     VariableDeclarationStatement,
@@ -46,6 +46,8 @@ class Compiler:
 
             case NodeType.BinaryExpression:
                 self.__visit_bin_expr(cast(BinaryExpression, node))
+            case NodeType.AssignmentExpression:
+                self.__visit_assign_expr(cast(AssignmentExpression, node))
 
             case _:
                 raise ValueError(f"Unhandled compile path {node.type()}")
@@ -65,11 +67,8 @@ class Compiler:
             ptr = self.builder.alloca(t)
             self.builder.store(val, ptr)
             self.env.define(name, ptr, t)
-        else:  # Reassign
-            res = self.env.lookup(name)
-            assert res is not None
-            ptr, _ = res
-            self.builder.store(val, ptr)
+        else:
+            raise ValueError(f"Cannot redeclare identifier '{name}' in the same scope")
 
     def __visit_block_stmt(self, node: BlockStatement) -> None:
         for stmt in node.statements:
@@ -162,6 +161,21 @@ class Compiler:
         assert val is not None and typ is not None
         return val, typ
 
+    def __visit_assign_expr(
+        self, node: AssignmentExpression
+    ) -> tuple[ir.Value, ir.Type]:
+        name = cast(IdentifierLiteral, node.left).value
+        env_val = self.env.lookup(name)
+        if env_val is None:
+            raise ValueError(f"Cannot reassign '{name}' as it is undefined.")
+
+        assert node.right is not None
+        val, _ = self.__resolve_val(node.right)
+        ptr, t = env_val
+        self.builder.store(val, ptr)
+
+        return val, t
+
     # endregion
 
     # region Helpers
@@ -192,6 +206,9 @@ class Compiler:
 
             case NodeType.BinaryExpression:
                 return self.__visit_bin_expr(cast(BinaryExpression, node))
+
+            case NodeType.AssignmentExpression:
+                return self.__visit_assign_expr(cast(AssignmentExpression, node))
 
             case _:
                 raise ValueError(f"Unhandled __resolve_val path {node.type()}")

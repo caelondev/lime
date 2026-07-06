@@ -4,6 +4,7 @@ from typing import Callable
 from enum import Enum, auto
 
 from AST import (
+    AssignmentExpression,
     BlockStatement,
     FunctionDeclarationStatement,
     ReturnStatement,
@@ -18,6 +19,7 @@ from AST import IntegerLiteral, FloatLiteral, IdentifierLiteral
 
 class PrecedenceType(Enum):
     P_LOWEST = 0
+    P_ASSIGNMENT = auto()
     P_LOGICAL_OR = auto()
     P_LOGICAL_AND = auto()
     P_EQUALITY = auto()
@@ -36,6 +38,7 @@ PRECEDENCES: dict[TokenType, PrecedenceType] = {
     TokenType.SLASH: PrecedenceType.P_MULTIPLICATIVE,
     TokenType.MODULO: PrecedenceType.P_MULTIPLICATIVE,
     TokenType.POW: PrecedenceType.P_POWER,
+    TokenType.ASSIGNMENT: PrecedenceType.P_ASSIGNMENT,
 }
 
 
@@ -59,6 +62,7 @@ class Parser:
             TokenType.SLASH: self.__parse_binary_expr,
             TokenType.POW: self.__parse_pow_expr,
             TokenType.MODULO: self.__parse_binary_expr,
+            TokenType.ASSIGNMENT: self.__parse_assignment_expr,
         }
 
         self.__next_token()  # fill peek_token
@@ -272,6 +276,23 @@ class Parser:
 
         return bin_expr
 
+    def __parse_assignment_expr(self, left: Expression) -> Expression:
+        cur = self.__cur()
+        bin_expr = AssignmentExpression(left)
+        precedence = self.__current_precedence()
+        self.__next_token()
+
+        # subtract 1 so a further ASSIGNMENT to the right binds tighter here,
+        # recursing instead of returning control to __parse_expr's loop.
+        right = self.__parse_expr(PrecedenceType(precedence.value - 1))
+        if right is None:
+            self.errors.append(
+                f"Expected expression after '{cur.type}' but found none."
+            )
+        bin_expr.right = right
+
+        return bin_expr
+
     def __parse_int_literal(self) -> Expression | None:
         cur = self.__cur()
         try:
@@ -359,7 +380,7 @@ class Parser:
         )
 
     def __no_nud_parse_fn_error(self, tt: TokenType):
-        self.errors.append(f"Unexpected token '{tt}'")
+        self.errors.append(f"Unexpected token '{tt}' at ${self.cur_token}")
 
     def __is_at_eof(self) -> bool:
         return self.cur_token is None or self.cur_token.type == TokenType.EOF

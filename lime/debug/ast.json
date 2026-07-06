@@ -21,58 +21,48 @@
                             },
                             "value": {
                                 "type": "IntegerLiteral",
-                                "integer": 4
+                                "integer": 5
                             },
                             "value_type": "int"
+                        },
+                        {
+                            "type": "VariableDeclarationStatement",
+                            "name": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "b"
+                            },
+                            "value": {
+                                "type": "IntegerLiteral",
+                                "integer": 0
+                            },
+                            "value_type": "int"
+                        },
+                        {
+                            "type": "ExpressionStatement",
+                            "expr": {
+                                "type": "AssignmentExpression",
+                                "assignee": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "a"
+                                },
+                                "value": {
+                                    "type": "AssignmentExpression",
+                                    "assignee": {
+                                        "type": "IdentifierLiteral",
+                                        "identifier": "b"
+                                    },
+                                    "value": {
+                                        "type": "IntegerLiteral",
+                                        "integer": 3
+                                    }
+                                }
+                            }
                         },
                         {
                             "type": "ReturnStatement",
                             "return_value": {
                                 "type": "IdentifierLiteral",
                                 "identifier": "a"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "FunctionDeclarationStatement": {
-                "type": "FunctionDeclarationStatement",
-                "name": {
-                    "type": "IdentifierLiteral",
-                    "identifier": "apple"
-                },
-                "params": [],
-                "ret_type": "int",
-                "body": {
-                    "type": "BlockStatement",
-                    "statements": [
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "value"
-                            },
-                            "value": {
-                                "type": "IntegerLiteral",
-                                "integer": 69
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "ReturnStatement",
-                            "return_value": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "value"
-                                },
-                                "operator": "ASTERISK",
-                                "right": {
-                                    "type": "IntegerLiteral",
-                                    "integer": 69
-                                }
                             }
                         }
                     ]

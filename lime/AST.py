@@ -15,6 +15,7 @@ class NodeType(Enum):
     ReturnStatement = "ReturnStatement"
 
     # Expressions
+    AssignmentExpression = "AssignmentExpression"
     BinaryExpression = "BinaryExpression"
     IntegerLiteral = "IntegerLiteral"
     FloatLiteral = "FloatLiteral"
@@ -179,6 +180,23 @@ class BinaryExpression(Expression):
             "left": self.left.json(),
             "operator": self.op.value,
             "right": self.right.json(),
+        }
+
+
+class AssignmentExpression(Expression):
+    def __init__(self, left: Expression, right: Expression | None = None) -> None:
+        self.left = left
+        self.right = right
+
+    def type(self) -> NodeType:
+        return NodeType.AssignmentExpression
+
+    def json(self) -> dict:
+        assert self.right is not None
+        return {
+            "type": self.type().value,
+            "assignee": self.left.json(),
+            "value": self.right.json(),
         }
 
 

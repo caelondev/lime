@@ -1,4 +1,6 @@
 fn main() -> int {
-  let a: int = 0;
+  let a: int = 5;
+  let b: int = 0;
+  a = b = 3;
   return a;
 }
