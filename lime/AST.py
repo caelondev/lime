@@ -19,6 +19,7 @@ class NodeType(Enum):
     BinaryExpression = "BinaryExpression"
     IntegerLiteral = "IntegerLiteral"
     FloatLiteral = "FloatLiteral"
+    BooleanLiteral = "BooleanLiteral"
     IdentifierLiteral = "IdentifierLiteral"
 
 
@@ -198,6 +199,17 @@ class AssignmentExpression(Expression):
             "assignee": self.left.json(),
             "value": self.right.json(),
         }
+
+
+class BooleanLiteral(Expression):
+    def __init__(self, value: bool) -> None:
+        self.value = value
+
+    def type(self) -> NodeType:
+        return NodeType.BooleanLiteral
+
+    def json(self) -> dict:
+        return {"type": self.type().value, "boolean": self.value}
 
 
 class IntegerLiteral(Expression):

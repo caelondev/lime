@@ -1,6 +1,6 @@
 fn main() -> int {
-  let a: int = 5;
+  let a: bool = true;
+  let b: bool = false;
 
-  (1==91^2) >= (2 != 7) > 6<8 <= 8;
-  return a;
+  return 0;
 }

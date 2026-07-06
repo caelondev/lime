@@ -2,7 +2,14 @@ from typing import cast
 
 from llvmlite import ir
 
-from AST import AssignmentExpression, Node, NodeType, Expression, Program
+from AST import (
+    AssignmentExpression,
+    BooleanLiteral,
+    Node,
+    NodeType,
+    Expression,
+    Program,
+)
 from AST import (
     ExpressionStatement,
     VariableDeclarationStatement,
@@ -22,6 +29,7 @@ class Compiler:
         self.type_map: dict[str, ir.Type] = {
             "int": ir.IntType(32),
             "float": ir.FloatType(),
+            "bool": ir.IntType(1),
         }
 
         self.module: ir.Module = ir.Module("main")
@@ -194,6 +202,13 @@ class Compiler:
                 float_node: FloatLiteral = cast(FloatLiteral, node)
                 key = val_type if val_type is not None else "float"
                 value, typ = float_node.value, self.type_map[key]
+                return ir.Constant(typ, value), typ
+
+            case NodeType.BooleanLiteral:
+                bool_node: BooleanLiteral = cast(BooleanLiteral, node)
+                key = val_type if val_type is not None else "bool"
+                value = 1 if bool_node.value else 0
+                typ = self.type_map[key]
                 return ir.Constant(typ, value), typ
 
             case NodeType.IdentifierLiteral:

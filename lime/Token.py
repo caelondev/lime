@@ -45,6 +45,8 @@ class TokenType(Enum):
     LET = "LET"
     FN = "FN"
     RETURN = "RETURN"
+    TRUE = "TRUE"
+    FALSE = "FALSE"
 
 
 class Token:
@@ -65,9 +67,11 @@ KEYWORDS: dict[str, TokenType] = {
     "let": TokenType.LET,
     "fn": TokenType.FN,
     "return": TokenType.RETURN,
+    "true": TokenType.TRUE,
+    "false": TokenType.FALSE,
 }
 
-TYPE_KEYWORDS: dict[str, TokenType] = {"int": TokenType.TYPE, "float": TokenType.TYPE}
+TYPE_KEYWORDS: list[str] = ["int", "float", "bool"]
 
 
 def lookup_keyword(kw: str) -> TokenType:
@@ -75,8 +79,7 @@ def lookup_keyword(kw: str) -> TokenType:
     if kw_tt is not None:
         return kw_tt
 
-    kw_tt = TYPE_KEYWORDS.get(kw)
-    if kw_tt is not None:
-        return kw_tt
+    if kw in TYPE_KEYWORDS:
+        return TokenType.TYPE
 
     return TokenType.IDENTIFIER

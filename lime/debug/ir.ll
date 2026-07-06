@@ -5,12 +5,9 @@ target datalayout = ""
 define i32 @"main"()
 {
 main_entry:
-  %".2" = alloca i32
-  store i32 5, i32* %".2"
-  %".4" = alloca i32
-  store i32 0, i32* %".4"
-  store i32 3, i32* %".4"
-  store i32 3, i32* %".2"
-  %".8" = load i32, i32* %".2"
-  ret i32 %".8"
+  %".2" = alloca i1
+  store i1 1, i1* %".2"
+  %".4" = alloca i1
+  store i1 0, i1* %".4"
+  ret i32 0
 }

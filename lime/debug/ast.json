@@ -20,79 +20,28 @@
                                 "identifier": "a"
                             },
                             "value": {
-                                "type": "IntegerLiteral",
-                                "integer": 5
+                                "type": "BooleanLiteral",
+                                "boolean": true
                             },
-                            "value_type": "int"
+                            "value_type": "bool"
                         },
                         {
-                            "type": "ExpressionStatement",
-                            "expr": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "BinaryExpression",
-                                    "left": {
-                                        "type": "BinaryExpression",
-                                        "left": {
-                                            "type": "BinaryExpression",
-                                            "left": {
-                                                "type": "BinaryExpression",
-                                                "left": {
-                                                    "type": "IntegerLiteral",
-                                                    "integer": 1
-                                                },
-                                                "operator": "EQUAL",
-                                                "right": {
-                                                    "type": "BinaryExpression",
-                                                    "left": {
-                                                        "type": "IntegerLiteral",
-                                                        "integer": 91
-                                                    },
-                                                    "operator": "POW",
-                                                    "right": {
-                                                        "type": "IntegerLiteral",
-                                                        "integer": 2
-                                                    }
-                                                }
-                                            },
-                                            "operator": "GREATER",
-                                            "right": {
-                                                "type": "BinaryExpression",
-                                                "left": {
-                                                    "type": "IntegerLiteral",
-                                                    "integer": 2
-                                                },
-                                                "operator": "NOT_EQUAL",
-                                                "right": {
-                                                    "type": "IntegerLiteral",
-                                                    "integer": 7
-                                                }
-                                            }
-                                        },
-                                        "operator": "GREATER",
-                                        "right": {
-                                            "type": "IntegerLiteral",
-                                            "integer": 6
-                                        }
-                                    },
-                                    "operator": "LESS",
-                                    "right": {
-                                        "type": "IntegerLiteral",
-                                        "integer": 8
-                                    }
-                                },
-                                "operator": "LESS_EQUAL",
-                                "right": {
-                                    "type": "IntegerLiteral",
-                                    "integer": 8
-                                }
-                            }
+                            "type": "VariableDeclarationStatement",
+                            "name": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "b"
+                            },
+                            "value": {
+                                "type": "BooleanLiteral",
+                                "boolean": false
+                            },
+                            "value_type": "bool"
                         },
                         {
                             "type": "ReturnStatement",
                             "return_value": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "a"
+                                "type": "IntegerLiteral",
+                                "integer": 0
                             }
                         }
                     ]

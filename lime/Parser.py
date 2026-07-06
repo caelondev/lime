@@ -6,6 +6,7 @@ from enum import Enum, auto
 from AST import (
     AssignmentExpression,
     BlockStatement,
+    BooleanLiteral,
     FunctionDeclarationStatement,
     ReturnStatement,
     Statement,
@@ -58,6 +59,8 @@ class Parser:
         self.nud_fns: dict[TokenType, Callable] = {
             TokenType.INT: self.__parse_int_literal,
             TokenType.FLOAT: self.__parse_float_literal,
+            TokenType.TRUE: self.__parse_bool_literal,
+            TokenType.FALSE: self.__parse_bool_literal,
             TokenType.IDENTIFIER: self.__parse_identifier_literal,
             TokenType.LEFT_PARENTHESIS: self.__parse_grouped_expr,
         }
@@ -316,6 +319,9 @@ class Parser:
 
     def __parse_identifier_literal(self) -> Expression | None:
         return IdentifierLiteral(self.__cur().literal)
+
+    def __parse_bool_literal(self) -> Expression | None:
+        return BooleanLiteral(self.__cur_token_is(TokenType.TRUE))
 
     def __parse_float_literal(self) -> Expression | None:
         cur = self.__cur()
