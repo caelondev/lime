@@ -1,2 +1,29 @@
-a();
-b()();
+fn ret() -> int {
+  let x: int = 10;
+  let y: int = 20;
+
+  x = x + 5;
+  return x;
+}
+
+fn square_of_ret() -> int {
+  let base: int = ret();
+  return base * base;
+}
+
+fn is_even_check() -> bool {
+  let val: int = ret();
+  return val % 2 == 0;
+}
+
+fn main() -> int {
+  let y: int = ret();
+  let squared: int = square_of_ret();
+  let even: bool = is_even_check();
+
+  if (even) {
+    return squared - y;
+  } else {
+    return y;
+  }
+}

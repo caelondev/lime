@@ -1,3 +1,4 @@
+from ast import FunctionType
 from typing import cast
 
 from llvmlite import ir
@@ -5,6 +6,7 @@ from llvmlite import ir
 from AST import (
     AssignmentExpression,
     BooleanLiteral,
+    CallExpression,
     IfStatement,
     Node,
     NodeType,
@@ -74,16 +76,30 @@ class Compiler:
 
     def __visit_var_decl_stmt(self, node: VariableDeclarationStatement) -> None:
         name: str = cast(IdentifierLiteral, node.name).value
-        val, t = self.__resolve_val(cast(Expression, node.value), node.value_type)
-        if self.env.lookup(name) is None:
-            ptr = self.builder.alloca(t)
-            self.builder.store(val, ptr)
-            self.env.define(name, ptr, t)
-        else:
+
+        if self.env.lookup_current(name) is not None:
             self.__error(f"Cannot redeclare identifier '{name}' in the same scope")
+            return
+
+        resolved = self.__resolve_val(cast(Expression, node.value), node.value_type)
+        if resolved is None:
+            self.__error(f"Cannot declare '{name}': its initializer failed to compile")
+            return
+
+        val, t = resolved
+        ptr = self.builder.alloca(t)
+        self.builder.store(val, ptr)
+        self.env.define(name, ptr, t)
 
     def __visit_if_stmt(self, node: IfStatement) -> None:
-        cond, _ = self.__resolve_val(node.condition)
+        resolved = self.__resolve_val(node.condition)
+        if resolved is None:
+            self.__error(
+                "Cannot compile 'if' statement: its condition failed to compile"
+            )
+            return
+
+        cond, _ = resolved
 
         if node.alternate is None:
             with self.builder.if_then(cond):
@@ -95,14 +111,28 @@ class Compiler:
                 with otherwise:
                     self.compile(node.alternate)
 
+        # if_then/if_else always creates a merge block for control flow to
+        # rejoin. If every branch already terminated (e.g. via `return`),
+        # the merge block is unreachable and would otherwise be left with
+        # no terminator, which LLVM's verifier rejects.
+        assert self.builder.block
+        if not self.builder.block.is_terminated:
+            self.builder.unreachable()
+
     def __visit_block_stmt(self, node: BlockStatement) -> None:
         for stmt in node.statements:
             self.compile(stmt)
 
     def __visit_ret_stmt(self, node: ReturnStatement) -> None:
         val_expr: Expression = cast(Expression, node.value)
-        val, _ = self.__resolve_val(val_expr)
+        resolved = self.__resolve_val(val_expr)
+        if resolved is None:
+            self.__error(
+                "Cannot compile 'return' statement: its value failed to compile"
+            )
+            return
 
+        val, _ = resolved
         self.builder.ret(val)
 
     def __visit_fn_decl_stmt(self, node: FunctionDeclarationStatement) -> None:
@@ -117,6 +147,7 @@ class Compiler:
 
         fn_type = ir.FunctionType(ret_type, params)
         fn = ir.Function(self.module, fn_type, name)
+        self.env.define(name, fn, fn_type)
 
         prev_builder = self.builder
         prev_env = self.env
@@ -133,10 +164,27 @@ class Compiler:
     # endregion
 
     # region Expression
-    def __visit_bin_expr(self, node: BinaryExpression) -> tuple[ir.Value, ir.Type]:
+    def __visit_bin_expr(
+        self, node: BinaryExpression
+    ) -> tuple[ir.Value, ir.Type] | None:
         op = node.op
-        left, ltype = self.__resolve_val(cast(Expression, node.left))
-        right, rtype = self.__resolve_val(cast(Expression, node.right))
+
+        left_resolved = self.__resolve_val(cast(Expression, node.left))
+        if left_resolved is None:
+            self.__error(
+                f"Cannot compile binary expression: left-hand side of '{op}' failed to compile"
+            )
+            return None
+
+        right_resolved = self.__resolve_val(cast(Expression, node.right))
+        if right_resolved is None:
+            self.__error(
+                f"Cannot compile binary expression: right-hand side of '{op}' failed to compile"
+            )
+            return None
+
+        left, ltype = left_resolved
+        right, rtype = right_resolved
 
         val = None
         typ = None
@@ -168,9 +216,11 @@ class Compiler:
                     val = self.builder.srem(left, right)
                 case TokenType.POW:
                     # TODO: add pow
-                    raise NotImplementedError("int pow not yet implemented")
+                    self.__error("Integer 'pow' operator is not yet implemented")
+                    return None
                 case _:
-                    raise ValueError(f"Unsupported int binary operator {op}")
+                    self.__error(f"Unsupported integer binary operator '{op}'")
+                    return None
         elif isinstance(ltype, ir.FloatType) and isinstance(rtype, ir.FloatType):
             if node.op in op_map:
                 result = self.builder.fcmp_ordered(op_map[node.op], left, right)
@@ -190,39 +240,68 @@ class Compiler:
                     val = self.builder.frem(left, right)
                 case TokenType.POW:
                     # TODO: add pow
-                    raise NotImplementedError("float pow not yet implemented")
+                    self.__error("Float 'pow' operator is not yet implemented")
+                    return None
                 case _:
-                    raise ValueError(f"Unsupported float binary operator {op}")
+                    self.__error(f"Unsupported float binary operator '{op}'")
+                    return None
         else:
-            raise TypeError(
-                f"Mismatched or unsupported operand types in binary expr: "
+            self.__error(
+                f"Mismatched or unsupported operand types in binary expression: "
                 f"{ltype} vs {rtype}"
             )
+            return None
 
         assert val is not None and typ is not None
         return val, typ
 
     def __visit_assign_expr(
         self, node: AssignmentExpression
-    ) -> tuple[ir.Value, ir.Type]:
+    ) -> tuple[ir.Value, ir.Type] | None:
         name = cast(IdentifierLiteral, node.left).value
         env_val = self.env.lookup(name)
         if env_val is None:
-            raise ValueError(f"Cannot reassign '{name}' as it is undefined.")
+            self.__error(f"Cannot assign to '{name}': it is undefined")
+            return None
 
         assert node.right is not None
-        val, _ = self.__resolve_val(node.right)
+        resolved = self.__resolve_val(node.right)
+        if resolved is None:
+            self.__error(
+                f"Cannot assign to '{name}': right-hand side failed to compile"
+            )
+            return None
+
+        val, _ = resolved
         ptr, t = env_val
         self.builder.store(val, ptr)
 
         return val, t
+
+    def __visit_call_expr(
+        self, node: CallExpression
+    ) -> tuple[ir.Value, ir.Type] | None:
+        callee_name = cast(IdentifierLiteral, node.callee).value
+        args = []
+        # args_type = []
+
+        match callee_name:
+            case _:
+                res = self.env.lookup(callee_name)
+                if res is None:
+                    self.__error(f"Cannot call undefined function '{callee_name}'")
+                    return None
+
+                fn, _ = res
+                val = self.builder.call(fn, args)
+                return val, val.type
 
     # endregion
 
     # region Helpers
     def __resolve_val(
         self, node: Expression, val_type: str | None = None
-    ) -> tuple[ir.Value, ir.Type]:
+    ) -> tuple[ir.Value, ir.Type] | None:
         match node.type():
             case NodeType.IntegerLiteral:
                 int_node: IntegerLiteral = cast(IntegerLiteral, node)
@@ -247,7 +326,8 @@ class Compiler:
                 ident_node: IdentifierLiteral = cast(IdentifierLiteral, node)
                 result = self.env.lookup(ident_node.value)
                 if result is None:
-                    raise NameError(f"undefined variable: {ident_node.value!r}")
+                    self.__error(f"Undefined variable '{ident_node.value}'")
+                    return None
                 ptr, t = result
                 val = self.builder.load(ptr)
                 return val, t
@@ -258,8 +338,12 @@ class Compiler:
             case NodeType.AssignmentExpression:
                 return self.__visit_assign_expr(cast(AssignmentExpression, node))
 
+            case NodeType.CallExpression:
+                return self.__visit_call_expr(cast(CallExpression, node))
+
             case _:
-                raise ValueError(f"Unhandled __resolve_val path {node.type()}")
+                self.__error(f"Unhandled expression type in resolve_val: {node.type()}")
+                return None
 
     def __error(self, msg: str) -> None:
         self.errors.append(msg)

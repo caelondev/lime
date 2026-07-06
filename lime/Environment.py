@@ -4,14 +4,15 @@ from llvmlite import ir
 class Environment:
     def __init__(
         self,
-        records: dict[str, tuple[ir.Value, ir.Type]] = {},
+        records: dict[str, tuple[ir.Value, ir.Type]] | None = None,
         parent=None,
         name: str = "global",
     ) -> None:
-        self.records = records
+        self.records: dict[str, tuple[ir.Value, ir.Type]] = (
+            records if records is not None else {}
+        )
         self.parent = parent
         self.name = name
-        pass
 
     def define(self, name: str, value: ir.Value, _t: ir.Type) -> ir.Value:
         assert self.records is not None
@@ -20,6 +21,11 @@ class Environment:
 
     def lookup(self, name) -> tuple[ir.Value, ir.Type] | None:
         return self.__resolve(name)
+
+    def lookup_current(self, name) -> tuple[ir.Value, ir.Type] | None:
+        assert self.records is not None
+        if name in self.records:
+            return self.records[name]
 
     def __resolve(self, name: str) -> tuple[ir.Value, ir.Type] | None:
         assert self.records is not None
