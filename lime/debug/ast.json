@@ -26,35 +26,65 @@
                             "value_type": "int"
                         },
                         {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "b"
-                            },
-                            "value": {
-                                "type": "IntegerLiteral",
-                                "integer": 0
-                            },
-                            "value_type": "int"
-                        },
-                        {
                             "type": "ExpressionStatement",
                             "expr": {
-                                "type": "AssignmentExpression",
-                                "assignee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "a"
-                                },
-                                "value": {
-                                    "type": "AssignmentExpression",
-                                    "assignee": {
-                                        "type": "IdentifierLiteral",
-                                        "identifier": "b"
+                                "type": "BinaryExpression",
+                                "left": {
+                                    "type": "BinaryExpression",
+                                    "left": {
+                                        "type": "BinaryExpression",
+                                        "left": {
+                                            "type": "BinaryExpression",
+                                            "left": {
+                                                "type": "BinaryExpression",
+                                                "left": {
+                                                    "type": "IntegerLiteral",
+                                                    "integer": 1
+                                                },
+                                                "operator": "EQUAL",
+                                                "right": {
+                                                    "type": "BinaryExpression",
+                                                    "left": {
+                                                        "type": "IntegerLiteral",
+                                                        "integer": 91
+                                                    },
+                                                    "operator": "POW",
+                                                    "right": {
+                                                        "type": "IntegerLiteral",
+                                                        "integer": 2
+                                                    }
+                                                }
+                                            },
+                                            "operator": "GREATER",
+                                            "right": {
+                                                "type": "BinaryExpression",
+                                                "left": {
+                                                    "type": "IntegerLiteral",
+                                                    "integer": 2
+                                                },
+                                                "operator": "NOT_EQUAL",
+                                                "right": {
+                                                    "type": "IntegerLiteral",
+                                                    "integer": 7
+                                                }
+                                            }
+                                        },
+                                        "operator": "GREATER",
+                                        "right": {
+                                            "type": "IntegerLiteral",
+                                            "integer": 6
+                                        }
                                     },
-                                    "value": {
+                                    "operator": "LESS",
+                                    "right": {
                                         "type": "IntegerLiteral",
-                                        "integer": 3
+                                        "integer": 8
                                     }
+                                },
+                                "operator": "LESS_EQUAL",
+                                "right": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 8
                                 }
                             }
                         },

@@ -13,13 +13,21 @@ class TokenType(Enum):
     INT = "INT"
     FLOAT = "FLOAT"
 
-    # Arithmetic synbols
+    # Arithmetic symbols
     PLUS = "PLUS"
     MINUS = "MINUS"
     ASTERISK = "ASTERISK"
     SLASH = "SLASH"
     POW = "POW"
     MODULO = "MODULO"
+
+    # Conditional symbols
+    LESS = "LESS"
+    GREATER = "GREATER"
+    LESS_EQUAL = "LESS_EQUAL"
+    GREATER_EQUAL = "GREATER"
+    EQUAL = "EQUAL"
+    NOT_EQUAL = "NOT_EQUAL"
 
     # Symbols
     COLON = "COLON"

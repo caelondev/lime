@@ -38,10 +38,36 @@ class Lexer:
                 tok = self.__new_token(TokenType.SLASH, self.cur_char)
             case "^":
                 tok = self.__new_token(TokenType.POW, self.cur_char)
+            case "<":
+                if self.__peak_char() == "=":
+                    ch = self.cur_char
+                    self.__read_char()
+                    tok = self.__new_token(TokenType.LESS_EQUAL, ch + self.cur_char)
+                else:
+                    tok = self.__new_token(TokenType.LESS, self.cur_char)
+            case ">":
+                if self.__peak_char() == "=":
+                    ch = self.cur_char
+                    self.__read_char()
+                    tok = self.__new_token(TokenType.GREATER_EQUAL, ch + self.cur_char)
+                else:
+                    tok = self.__new_token(TokenType.GREATER, self.cur_char)
             case "%":
                 tok = self.__new_token(TokenType.MODULO, self.cur_char)
             case "=":
-                tok = self.__new_token(TokenType.ASSIGNMENT, self.cur_char)
+                if self.__peak_char() == "=":
+                    ch = self.cur_char
+                    self.__read_char()
+                    tok = self.__new_token(TokenType.EQUAL, ch + self.cur_char)
+                else:
+                    tok = self.__new_token(TokenType.ASSIGNMENT, self.cur_char)
+            case "!":
+                if self.__peak_char() == "=":
+                    ch = self.cur_char
+                    self.__read_char()
+                    tok = self.__new_token(TokenType.NOT_EQUAL, ch + self.cur_char)
+                else:
+                    tok = self.__new_token(TokenType.ILLEGAL, self.cur_char)
             case ":":
                 tok = self.__new_token(TokenType.COLON, self.cur_char)
             case ";":

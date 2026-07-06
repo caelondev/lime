@@ -31,14 +31,20 @@ class PrecedenceType(Enum):
     P_CALL = auto()
 
 
-PRECEDENCES: dict[TokenType, PrecedenceType] = {
+PRECEDENCES = {
+    TokenType.ASSIGNMENT: PrecedenceType.P_ASSIGNMENT,
+    TokenType.EQUAL: PrecedenceType.P_EQUALITY,
+    TokenType.NOT_EQUAL: PrecedenceType.P_EQUALITY,
+    TokenType.LESS: PrecedenceType.P_COMPARISON,
+    TokenType.LESS_EQUAL: PrecedenceType.P_COMPARISON,
+    TokenType.GREATER: PrecedenceType.P_COMPARISON,
+    TokenType.GREATER_EQUAL: PrecedenceType.P_COMPARISON,
     TokenType.PLUS: PrecedenceType.P_ADDITIVE,
     TokenType.MINUS: PrecedenceType.P_ADDITIVE,
     TokenType.ASTERISK: PrecedenceType.P_MULTIPLICATIVE,
     TokenType.SLASH: PrecedenceType.P_MULTIPLICATIVE,
     TokenType.MODULO: PrecedenceType.P_MULTIPLICATIVE,
     TokenType.POW: PrecedenceType.P_POWER,
-    TokenType.ASSIGNMENT: PrecedenceType.P_ASSIGNMENT,
 }
 
 
@@ -63,6 +69,12 @@ class Parser:
             TokenType.POW: self.__parse_pow_expr,
             TokenType.MODULO: self.__parse_binary_expr,
             TokenType.ASSIGNMENT: self.__parse_assignment_expr,
+            TokenType.LESS: self.__parse_binary_expr,
+            TokenType.GREATER: self.__parse_binary_expr,
+            TokenType.LESS_EQUAL: self.__parse_binary_expr,
+            TokenType.GREATER_EQUAL: self.__parse_binary_expr,
+            TokenType.EQUAL: self.__parse_binary_expr,
+            TokenType.NOT_EQUAL: self.__parse_binary_expr,
         }
 
         self.__next_token()  # fill peek_token
