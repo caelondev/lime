@@ -5,6 +5,7 @@ from llvmlite import ir
 from AST import (
     AssignmentExpression,
     BooleanLiteral,
+    IfStatement,
     Node,
     NodeType,
     Expression,
@@ -46,6 +47,8 @@ class Compiler:
                 self.__visit_expr_stmt(cast(ExpressionStatement, node))
             case NodeType.VariableDeclarationStatement:
                 self.__visit_var_decl_stmt(cast(VariableDeclarationStatement, node))
+            case NodeType.IfStatement:
+                self.__visit_if_stmt(cast(IfStatement, node))
             case NodeType.FunctionDeclarationStatement:
                 self.__visit_fn_decl_stmt(cast(FunctionDeclarationStatement, node))
             case NodeType.BlockStatement:
@@ -78,6 +81,19 @@ class Compiler:
             self.env.define(name, ptr, t)
         else:
             self.__error(f"Cannot redeclare identifier '{name}' in the same scope")
+
+    def __visit_if_stmt(self, node: IfStatement) -> None:
+        cond, _ = self.__resolve_val(node.condition)
+
+        if node.alternate is None:
+            with self.builder.if_then(cond):
+                self.compile(node.consequence)
+        else:
+            with self.builder.if_else(cond) as (true, otherwise):
+                with true:
+                    self.compile(node.consequence)
+                with otherwise:
+                    self.compile(node.alternate)
 
     def __visit_block_stmt(self, node: BlockStatement) -> None:
         for stmt in node.statements:

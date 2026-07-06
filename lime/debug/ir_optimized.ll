@@ -5,7 +5,7 @@ target triple = "aarch64-unknown-linux-android24"
 ; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none)
 define noundef i32 @main() local_unnamed_addr #0 {
 main_entry:
-  ret i32 0
+  ret i32 2
 }
 
 attributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) }

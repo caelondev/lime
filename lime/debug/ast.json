@@ -21,7 +21,7 @@
                             },
                             "value": {
                                 "type": "IntegerLiteral",
-                                "integer": 1
+                                "integer": 2
                             },
                             "value_type": "int"
                         },
@@ -87,6 +87,13 @@
                                                     "type": "IntegerLiteral",
                                                     "integer": 1
                                                 }
+                                            }
+                                        },
+                                        {
+                                            "type": "ReturnStatement",
+                                            "return_value": {
+                                                "type": "IntegerLiteral",
+                                                "integer": 2
                                             }
                                         }
                                     ]
