@@ -1,4 +1,5 @@
 from ast import FunctionType
+import enum
 from typing import cast
 
 from llvmlite import ir
@@ -7,6 +8,7 @@ from AST import (
     AssignmentExpression,
     BooleanLiteral,
     CallExpression,
+    FunctionParameter,
     IfStatement,
     Node,
     NodeType,
@@ -104,6 +106,7 @@ class Compiler:
         if node.alternate is None:
             with self.builder.if_then(cond):
                 self.compile(node.consequence)
+            # merge block is the real fallthrough continuation — leave it alone
         else:
             with self.builder.if_else(cond) as (true, otherwise):
                 with true:
@@ -111,13 +114,13 @@ class Compiler:
                 with otherwise:
                     self.compile(node.alternate)
 
-        # if_then/if_else always creates a merge block for control flow to
-        # rejoin. If every branch already terminated (e.g. via `return`),
-        # the merge block is unreachable and would otherwise be left with
-        # no terminator, which LLVM's verifier rejects.
-        assert self.builder.block
-        if not self.builder.block.is_terminated:
-            self.builder.unreachable()
+            # if_then/if_else always creates a merge block for control flow to
+            # rejoin. If every branch already terminated (e.g. via `return`),
+            # the merge block is unreachable and would otherwise be left with
+            # no terminator, which LLVM's verifier rejects.
+            assert self.builder.block
+            if not self.builder.block.is_terminated:
+                self.builder.unreachable()
 
     def __visit_block_stmt(self, node: BlockStatement) -> None:
         for stmt in node.statements:
@@ -140,12 +143,12 @@ class Compiler:
 
         name: str = cast(IdentifierLiteral, node.name).value
         body: BlockStatement = node.body
-        params: list[IdentifierLiteral] = node.params
-        _param_names: list[str] = [p.value for p in params]
-        _param_types: list[ir.Type] = []  # TODO: Implement params
+        params: list[FunctionParameter] = node.params
+        param_names: list[str] = [p.name for p in params]
+        param_types: list[ir.Type] = [self.type_map[p.value_type] for p in params]
         ret_type: ir.Type = self.type_map[node.ret_type]
 
-        fn_type = ir.FunctionType(ret_type, params)
+        fn_type = ir.FunctionType(ret_type, param_types)
         fn = ir.Function(self.module, fn_type, name)
         self.env.define(name, fn, fn_type)
 
@@ -155,6 +158,17 @@ class Compiler:
         block: ir.Block = fn.append_basic_block(f"{name}_entry")
         self.env = Environment(parent=self.env)
         self.builder = ir.IRBuilder(block)
+
+        # store ptr of each params
+        params_ptr = []
+        for i, typ in enumerate(param_types):
+            ptr = self.builder.alloca(typ)
+            self.builder.store(fn.args[i], ptr)
+            params_ptr.append(ptr)
+
+        for i, (t, name) in enumerate(zip(param_types, param_names)):
+            ptr = params_ptr[i]
+            self.env.define(name, ptr, t)
 
         self.compile(body)
 
@@ -282,8 +296,16 @@ class Compiler:
         self, node: CallExpression
     ) -> tuple[ir.Value, ir.Type] | None:
         callee_name = cast(IdentifierLiteral, node.callee).value
-        args = []
-        # args_type = []
+        args: list[tuple[ir.Value, ir.Type] | None] = [
+            self.__resolve_val(a) for a in node.args
+        ]
+
+        args_val: list[ir.Value] = []
+        for a in args:
+            if a is None:
+                return None
+
+            args_val.append(a[0])  # a[1] is ir.Value
 
         match callee_name:
             case _:
@@ -293,7 +315,7 @@ class Compiler:
                     return None
 
                 fn, _ = res
-                val = self.builder.call(fn, args)
+                val = self.builder.call(fn, args_val)
                 return val, val.type
 
     # endregion

@@ -285,7 +285,6 @@ class Parser:
 
         if self.__peek_token_is(TokenType.RIGHT_PARENTHESIS):
             self.__next_token()  # eat LEFT_PARENTHESIS
-            self.__next_token()  # eat RIGHT_PARENTHESIS
             return params
 
         # (name: type, name: type)
@@ -365,7 +364,7 @@ class Parser:
         # If we broke out on a trailing comma, cur is already the comma and
         # peek is the terminator, so __expect_peek below advances correctly.
         # If there was no trailing comma, cur is the last expr's last token
-        # and peek is the terminator — same call handles it identically.
+        # and peek is the terminator. same call handles it identically.
         if not self.__expect_peek(terminator):
             self.__recover()
             return None
@@ -540,15 +539,6 @@ class Parser:
         self.errors.append(
             f"Expected next token to be {tt} but got {self.peek_token} instead."
         )
-
-    def __cur_error(self, tt: TokenType):
-        self.errors.append(
-            f"Expected current token to be {tt} but got {self.cur_token} instead."
-        )
-
-    def __ignore_cur(self, tt: TokenType):
-        if self.__cur_token_is(tt):
-            self.__next_token()
 
     def __no_nud_parse_fn_error(self, tt: TokenType):
         self.errors.append(f"Unexpected token '{tt}' at ${self.cur_token}")
