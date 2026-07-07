@@ -315,13 +315,62 @@ class Parser:
             else:
                 break  # must be RIGHT_PARENTHESIS, checked by loop condition next iteration
 
-        # trailing comma
-        self.__ignore_cur(TokenType.COMMA)
+        # NOTE: no __ignore_cur(COMMA) here. If a trailing comma was present,
+        # the inner "eat comma" above already advanced cur onto it, and the
+        # while-loop's own peek check (RIGHT_PARENTHESIS) is what ends the loop.
+        # cur is left sitting on the comma in that case, with peek == ')' — so
+        # __expect_peek below handles both the trailing-comma and no-trailing-
+        # comma cases uniformly. Adding an __ignore_cur(COMMA) here would eat
+        # the comma a second time and desync cur/peek from the ')'.
         if not self.__expect_peek(TokenType.RIGHT_PARENTHESIS):
             self.__recover()
             return None
 
         return params
+
+    def __parse_expr_list(self, terminator: TokenType) -> list[Expression] | None:
+        e_list: list[Expression] = []
+
+        # cur = ( or [ (the opening delimiter)
+
+        if self.__peek_token_is(terminator):
+            self.__next_token()  # eat opening delimiter, land on terminator
+            return e_list
+
+        self.__next_token()  # eat opening delimiter, land on first expr token
+
+        e = self.__parse_expr(PrecedenceType.P_LOWEST)
+        if e is None:
+            self.__recover([TokenType.COMMA])
+            return None
+
+        e_list.append(e)
+
+        while self.__peek_token_is(TokenType.COMMA):
+            self.__next_token()  # move to comma
+
+            if self.__peek_token_is(terminator):
+                break  # trailing comma: cur == ',', peek == terminator
+
+            self.__next_token()  # move to next expr's first token
+
+            e = self.__parse_expr(PrecedenceType.P_LOWEST)
+            if e is None:
+                self.__recover([TokenType.COMMA])
+                return None
+
+            e_list.append(e)
+
+        # NOTE: no __ignore_cur(COMMA) here, same reasoning as __parse_fn_params.
+        # If we broke out on a trailing comma, cur is already the comma and
+        # peek is the terminator, so __expect_peek below advances correctly.
+        # If there was no trailing comma, cur is the last expr's last token
+        # and peek is the terminator — same call handles it identically.
+        if not self.__expect_peek(terminator):
+            self.__recover()
+            return None
+
+        return e_list
 
     # endregion
 
@@ -367,12 +416,12 @@ class Parser:
         return bin_expr
 
     def __parse_call_expr(self, left: Expression) -> CallExpression | None:
-        # TODO: Parse args
-        if not self.__expect_peek(TokenType.RIGHT_PARENTHESIS):
+        args = self.__parse_expr_list(TokenType.RIGHT_PARENTHESIS)
+        if args is None:
             self.__recover()
             return None
 
-        return CallExpression(callee=left, args=[])
+        return CallExpression(callee=left, args=args)
 
     def __parse_pow_expr(self, left: Expression) -> Expression:
         cur = self.__cur()

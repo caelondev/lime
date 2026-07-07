@@ -27,8 +27,29 @@
                         {
                             "type": "ReturnStatement",
                             "return_value": {
-                                "type": "IntegerLiteral",
-                                "integer": 0
+                                "type": "CallExpression",
+                                "callee": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "add"
+                                },
+                                "args": [
+                                    {
+                                        "type": "IntegerLiteral",
+                                        "integer": 10
+                                    },
+                                    {
+                                        "type": "BinaryExpression",
+                                        "left": {
+                                            "type": "IntegerLiteral",
+                                            "integer": 10
+                                        },
+                                        "operator": "POW",
+                                        "right": {
+                                            "type": "IntegerLiteral",
+                                            "integer": 8
+                                        }
+                                    }
+                                ]
                             }
                         }
                     ]
