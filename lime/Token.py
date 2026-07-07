@@ -12,6 +12,7 @@ class TokenType(Enum):
     IDENTIFIER = "IDENTIFIER"
     INT = "INT"
     FLOAT = "FLOAT"
+    STRING = "STRING"
 
     # Arithmetic symbols
     PLUS = "PLUS"
@@ -76,7 +77,14 @@ KEYWORDS: dict[str, TokenType] = {
     "false": TokenType.FALSE,
 }
 
-TYPE_KEYWORDS: list[str] = ["int", "float", "bool"]
+TYPE_KEYWORDS: list[str] = [
+    "int",
+    "float",
+    "bool",
+    "string",
+    "void",  # I DONT CARE ANYMORE!!! I AM **NOT**
+    # IMPLEMENTING RETURN TYPES, USE THIS ANYWHERE, U MANIAC
+]
 
 
 def lookup_keyword(kw: str) -> TokenType:

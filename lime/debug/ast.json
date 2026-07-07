@@ -6,104 +6,6 @@
                 "type": "FunctionDeclarationStatement",
                 "name": {
                     "type": "IdentifierLiteral",
-                    "identifier": "fib"
-                },
-                "params": [
-                    {
-                        "type": "FunctionParameter",
-                        "name": "n",
-                        "value_type": "int"
-                    }
-                ],
-                "ret_type": "int",
-                "body": {
-                    "type": "BlockStatement",
-                    "statements": [
-                        {
-                            "type": "IfStatement",
-                            "condition": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "n"
-                                },
-                                "operator": "LESS_EQUAL",
-                                "right": {
-                                    "type": "IntegerLiteral",
-                                    "integer": 1
-                                }
-                            },
-                            "consequence": {
-                                "type": "BlockStatement",
-                                "statements": [
-                                    {
-                                        "type": "ReturnStatement",
-                                        "return_value": {
-                                            "type": "IdentifierLiteral",
-                                            "identifier": "n"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "type": "ReturnStatement",
-                            "return_value": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "CallExpression",
-                                    "callee": {
-                                        "type": "IdentifierLiteral",
-                                        "identifier": "fib"
-                                    },
-                                    "args": [
-                                        {
-                                            "type": "BinaryExpression",
-                                            "left": {
-                                                "type": "IdentifierLiteral",
-                                                "identifier": "n"
-                                            },
-                                            "operator": "MINUS",
-                                            "right": {
-                                                "type": "IntegerLiteral",
-                                                "integer": 2
-                                            }
-                                        }
-                                    ]
-                                },
-                                "operator": "PLUS",
-                                "right": {
-                                    "type": "CallExpression",
-                                    "callee": {
-                                        "type": "IdentifierLiteral",
-                                        "identifier": "fib"
-                                    },
-                                    "args": [
-                                        {
-                                            "type": "BinaryExpression",
-                                            "left": {
-                                                "type": "IdentifierLiteral",
-                                                "identifier": "n"
-                                            },
-                                            "operator": "MINUS",
-                                            "right": {
-                                                "type": "IntegerLiteral",
-                                                "integer": 1
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "FunctionDeclarationStatement": {
-                "type": "FunctionDeclarationStatement",
-                "name": {
-                    "type": "IdentifierLiteral",
                     "identifier": "main"
                 },
                 "params": [],
@@ -112,19 +14,22 @@
                     "type": "BlockStatement",
                     "statements": [
                         {
+                            "type": "VariableDeclarationStatement",
+                            "name": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "x"
+                            },
+                            "value": {
+                                "type": "StringLiteral",
+                                "string": "test"
+                            },
+                            "value_type": "string"
+                        },
+                        {
                             "type": "ReturnStatement",
                             "return_value": {
-                                "type": "CallExpression",
-                                "callee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "fib"
-                                },
-                                "args": [
-                                    {
-                                        "type": "IntegerLiteral",
-                                        "integer": 20
-                                    }
-                                ]
+                                "type": "IntegerLiteral",
+                                "integer": 0
                             }
                         }
                     ]

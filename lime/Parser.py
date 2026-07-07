@@ -14,6 +14,7 @@ from AST import (
     Statement,
     Expression,
     Program,
+    StringLiteral,
 )
 from AST import ExpressionStatement, VariableDeclarationStatement, FunctionParameter
 from AST import BinaryExpression
@@ -62,6 +63,7 @@ class Parser:
         self.nud_fns: dict[TokenType, Callable] = {
             TokenType.INT: self.__parse_int_literal,
             TokenType.FLOAT: self.__parse_float_literal,
+            TokenType.STRING: self.__parse_str_literal,
             TokenType.TRUE: self.__parse_bool_literal,
             TokenType.FALSE: self.__parse_bool_literal,
             TokenType.IDENTIFIER: self.__parse_identifier_literal,
@@ -464,6 +466,9 @@ class Parser:
             self.errors.append(f"Could not parse '{cur.literal}' as an integer.")
             return None
         return IntegerLiteral(value)
+
+    def __parse_str_literal(self) -> Expression | None:
+        return StringLiteral(self.__cur().literal)
 
     def __parse_identifier_literal(self) -> Expression | None:
         return IdentifierLiteral(self.__cur().literal)

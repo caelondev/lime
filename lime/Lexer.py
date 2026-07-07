@@ -21,6 +21,8 @@ class Lexer:
             return self.__read_number()
         elif self.__is_ascii(self.cur_char):
             return self.__read_keyword()
+        elif self.cur_char == '"':
+            return self.__read_str()
 
         match self.cur_char:
             case "+":
@@ -122,6 +124,19 @@ class Lexer:
             self.__read_char()
 
         return self.__new_token(lookup_keyword(output), output)
+
+    def __read_str(self) -> Token:
+        output = ""
+
+        self.__read_char()  # skip opening "
+
+        while self.cur_char is not None and self.cur_char != '"':
+            output += self.cur_char
+            self.__read_char()
+
+        self.__read_char()  # skip closing "
+
+        return self.__new_token(TokenType.STRING, output)
 
     def __is_digit(self, ch: str | None) -> bool:
         return ch is not None and "0" <= ch <= "9"
