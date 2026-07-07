@@ -31,6 +31,7 @@ class TokenType(Enum):
 
     # Symbols
     COLON = "COLON"
+    COMMA = "COMMA"
     SEMICOLON = "SEMICOLON"
     ARROW = "ARROW"
     LEFT_PARENTHESIS = "LEFT_PARENTHESIS"

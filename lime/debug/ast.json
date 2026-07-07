@@ -6,269 +6,29 @@
                 "type": "FunctionDeclarationStatement",
                 "name": {
                     "type": "IdentifierLiteral",
-                    "identifier": "ret"
-                },
-                "params": [],
-                "ret_type": "int",
-                "body": {
-                    "type": "BlockStatement",
-                    "statements": [
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "x"
-                            },
-                            "value": {
-                                "type": "IntegerLiteral",
-                                "integer": 10
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "y"
-                            },
-                            "value": {
-                                "type": "IntegerLiteral",
-                                "integer": 20
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "ExpressionStatement",
-                            "expr": {
-                                "type": "AssignmentExpression",
-                                "assignee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "x"
-                                },
-                                "value": {
-                                    "type": "BinaryExpression",
-                                    "left": {
-                                        "type": "IdentifierLiteral",
-                                        "identifier": "x"
-                                    },
-                                    "operator": "PLUS",
-                                    "right": {
-                                        "type": "IntegerLiteral",
-                                        "integer": 5
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "type": "ReturnStatement",
-                            "return_value": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "x"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "FunctionDeclarationStatement": {
-                "type": "FunctionDeclarationStatement",
-                "name": {
-                    "type": "IdentifierLiteral",
-                    "identifier": "square_of_ret"
-                },
-                "params": [],
-                "ret_type": "int",
-                "body": {
-                    "type": "BlockStatement",
-                    "statements": [
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "base"
-                            },
-                            "value": {
-                                "type": "CallExpression",
-                                "callee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "ret"
-                                },
-                                "args": []
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "ReturnStatement",
-                            "return_value": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "base"
-                                },
-                                "operator": "ASTERISK",
-                                "right": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "base"
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "FunctionDeclarationStatement": {
-                "type": "FunctionDeclarationStatement",
-                "name": {
-                    "type": "IdentifierLiteral",
-                    "identifier": "is_even_check"
-                },
-                "params": [],
-                "ret_type": "bool",
-                "body": {
-                    "type": "BlockStatement",
-                    "statements": [
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "val"
-                            },
-                            "value": {
-                                "type": "CallExpression",
-                                "callee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "ret"
-                                },
-                                "args": []
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "ReturnStatement",
-                            "return_value": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "BinaryExpression",
-                                    "left": {
-                                        "type": "IdentifierLiteral",
-                                        "identifier": "val"
-                                    },
-                                    "operator": "MODULO",
-                                    "right": {
-                                        "type": "IntegerLiteral",
-                                        "integer": 2
-                                    }
-                                },
-                                "operator": "EQUAL",
-                                "right": {
-                                    "type": "IntegerLiteral",
-                                    "integer": 0
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "FunctionDeclarationStatement": {
-                "type": "FunctionDeclarationStatement",
-                "name": {
-                    "type": "IdentifierLiteral",
                     "identifier": "main"
                 },
-                "params": [],
+                "params": [
+                    {
+                        "type": "FunctionParameter",
+                        "name": "a",
+                        "value_type": "int"
+                    },
+                    {
+                        "type": "FunctionParameter",
+                        "name": "b",
+                        "value_type": "bool"
+                    }
+                ],
                 "ret_type": "int",
                 "body": {
                     "type": "BlockStatement",
                     "statements": [
                         {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "y"
-                            },
-                            "value": {
-                                "type": "CallExpression",
-                                "callee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "ret"
-                                },
-                                "args": []
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "squared"
-                            },
-                            "value": {
-                                "type": "CallExpression",
-                                "callee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "square_of_ret"
-                                },
-                                "args": []
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "even"
-                            },
-                            "value": {
-                                "type": "CallExpression",
-                                "callee": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "is_even_check"
-                                },
-                                "args": []
-                            },
-                            "value_type": "bool"
-                        },
-                        {
-                            "type": "IfStatement",
-                            "condition": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "even"
-                            },
-                            "consequence": {
-                                "type": "BlockStatement",
-                                "statements": [
-                                    {
-                                        "type": "ReturnStatement",
-                                        "return_value": {
-                                            "type": "BinaryExpression",
-                                            "left": {
-                                                "type": "IdentifierLiteral",
-                                                "identifier": "squared"
-                                            },
-                                            "operator": "MINUS",
-                                            "right": {
-                                                "type": "IdentifierLiteral",
-                                                "identifier": "y"
-                                            }
-                                        }
-                                    }
-                                ]
-                            },
-                            "alternate": {
-                                "type": "BlockStatement",
-                                "statements": [
-                                    {
-                                        "type": "ReturnStatement",
-                                        "return_value": {
-                                            "type": "IdentifierLiteral",
-                                            "identifier": "y"
-                                        }
-                                    }
-                                ]
+                            "type": "ReturnStatement",
+                            "return_value": {
+                                "type": "IntegerLiteral",
+                                "integer": 0
                             }
                         }
                     ]

@@ -24,6 +24,9 @@ class NodeType(Enum):
     BooleanLiteral = "BooleanLiteral"
     IdentifierLiteral = "IdentifierLiteral"
 
+    # Helpers
+    FunctionParameter = "FunctionParameter"
+
 
 class Node(ABC):
     @abstractmethod
@@ -59,7 +62,26 @@ class Program(Node):
         }
 
 
-# region
+# region Helpers
+class FunctionParameter(Expression):
+    def __init__(self, name: str, value_type: str) -> None:
+        self.name = name
+        self.value_type = value_type
+
+    def type(self) -> NodeType:
+        return NodeType.FunctionParameter
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "name": self.name,
+            "value_type": self.value_type,
+        }
+
+
+# endregion
+
+# region Statement
 
 
 class ExpressionStatement(Statement):
@@ -147,7 +169,7 @@ class FunctionDeclarationStatement(Statement):
     def __init__(
         self,
         name=None,
-        params: list = [],
+        params: list[FunctionParameter] = [],
         ret_type: str | None = None,
         body: BlockStatement | None = None,
     ) -> None:
@@ -188,6 +210,7 @@ class ReturnStatement(Statement):
         return {"type": self.type().value, "return_value": None}
 
 
+# region Expression
 class BinaryExpression(Expression):
     def __init__(
         self, left: Expression, op: TokenType, right: Expression | None = None
@@ -290,3 +313,6 @@ class IdentifierLiteral(Expression):
 
     def json(self) -> dict:
         return {"type": self.type().value, "identifier": self.value}
+
+
+# endregion

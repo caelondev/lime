@@ -72,6 +72,8 @@ class Lexer:
                 tok = self.__new_token(TokenType.COLON, self.cur_char)
             case ";":
                 tok = self.__new_token(TokenType.SEMICOLON, self.cur_char)
+            case ",":
+                tok = self.__new_token(TokenType.COMMA, self.cur_char)
             case "(":
                 tok = self.__new_token(TokenType.LEFT_PARENTHESIS, self.cur_char)
             case ")":

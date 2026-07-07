@@ -15,7 +15,7 @@ from AST import (
     Expression,
     Program,
 )
-from AST import ExpressionStatement, VariableDeclarationStatement
+from AST import ExpressionStatement, VariableDeclarationStatement, FunctionParameter
 from AST import BinaryExpression
 from AST import IntegerLiteral, FloatLiteral, IdentifierLiteral
 
@@ -228,11 +228,12 @@ class Parser:
             self.__recover()
             return None
 
-        # TODO: Parse params
-
-        if not self.__expect_peek(TokenType.RIGHT_PARENTHESIS):
+        params = self.__parse_fn_params()
+        if params is None:
             self.__recover()
             return None
+
+        fn_stmt.params = params
 
         if not self.__expect_peek(TokenType.ARROW):
             self.__recover()
@@ -278,6 +279,49 @@ class Parser:
             return None
 
         return BlockStatement(stmts)
+
+    def __parse_fn_params(self) -> list[FunctionParameter] | None:
+        params: list[FunctionParameter] = []
+
+        if self.__peek_token_is(TokenType.RIGHT_PARENTHESIS):
+            self.__next_token()  # eat LEFT_PARENTHESIS
+            self.__next_token()  # eat RIGHT_PARENTHESIS
+            return params
+
+        # (name: type, name: type)
+        # cur = (
+
+        while not self.__is_at_eof() and not self.__peek_token_is(
+            TokenType.RIGHT_PARENTHESIS
+        ):
+            if not self.__expect_peek(TokenType.IDENTIFIER):
+                self.__recover([TokenType.COMMA])
+                return None
+
+            name = self.__cur().literal
+            if not self.__expect_peek(TokenType.COLON):
+                self.__recover([TokenType.COMMA])
+                return None
+
+            if not self.__expect_peek(TokenType.TYPE):
+                self.__recover([TokenType.COMMA])
+                return None
+
+            val_typ = self.__cur().literal
+            params.append(FunctionParameter(name, val_typ))
+
+            if self.__peek_token_is(TokenType.COMMA):
+                self.__next_token()  # eat comma
+            else:
+                break  # must be RIGHT_PARENTHESIS, checked by loop condition next iteration
+
+        # trailing comma
+        self.__ignore_cur(TokenType.COMMA)
+        if not self.__expect_peek(TokenType.RIGHT_PARENTHESIS):
+            self.__recover()
+            return None
+
+        return params
 
     # endregion
 
@@ -453,16 +497,25 @@ class Parser:
             f"Expected current token to be {tt} but got {self.cur_token} instead."
         )
 
+    def __ignore_cur(self, tt: TokenType):
+        if self.__cur_token_is(tt):
+            self.__next_token()
+
     def __no_nud_parse_fn_error(self, tt: TokenType):
         self.errors.append(f"Unexpected token '{tt}' at ${self.cur_token}")
 
     def __is_at_eof(self) -> bool:
         return self.cur_token is None or self.cur_token.type == TokenType.EOF
 
-    def __recover(self) -> None:
+    def __recover(self, add_recover_toks: list[TokenType] | None = None) -> None:
         """skip tokens until a statement boundary (SEMICOLON) or EOF,
         so one bad statement doesn't cascade into a pile of bogus errors."""
-        while not self.__cur_token_is(TokenType.SEMICOLON) and not self.__is_at_eof():
+
+        recover_toks = [TokenType.SEMICOLON]
+        if add_recover_toks is not None:
+            recover_toks += add_recover_toks
+
+        while self.__cur().type not in recover_toks and not self.__is_at_eof():
             self.__next_token()
 
     # endregion
