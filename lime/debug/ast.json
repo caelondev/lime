@@ -21,9 +21,34 @@
                             },
                             "value": {
                                 "type": "StringLiteral",
-                                "string": "test"
+                                "string": "true"
                             },
                             "value_type": "string"
+                        },
+                        {
+                            "type": "ExpressionStatement",
+                            "expr": {
+                                "type": "CallExpression",
+                                "callee": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "print"
+                                },
+                                "args": [
+                                    {
+                                        "type": "CallExpression",
+                                        "callee": {
+                                            "type": "IdentifierLiteral",
+                                            "identifier": "print"
+                                        },
+                                        "args": [
+                                            {
+                                                "type": "IdentifierLiteral",
+                                                "identifier": "x"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
                         },
                         {
                             "type": "ReturnStatement",

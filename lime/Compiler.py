@@ -1,5 +1,3 @@
-from ast import FunctionType
-import enum
 from typing import cast
 
 from llvmlite import ir
@@ -14,6 +12,7 @@ from AST import (
     NodeType,
     Expression,
     Program,
+    StringLiteral,
 )
 from AST import (
     ExpressionStatement,
@@ -31,16 +30,65 @@ from Environment import Environment
 
 class Compiler:
     def __init__(self) -> None:
+        string_type = ir.LiteralStructType(
+            [ir.IntType(64), ir.PointerType(ir.IntType(8))]
+        )
+
         self.type_map: dict[str, ir.Type] = {
             "int": ir.IntType(32),
             "float": ir.FloatType(),
             "bool": ir.IntType(1),
+            "string": string_type,
+            "void": ir.VoidType(),
         }
 
         self.module: ir.Module = ir.Module("main")
         self.builder: ir.IRBuilder = ir.IRBuilder()
         self.env = Environment()
         self.errors: list[str] = []
+        self._string_counter = 0
+
+        self._bool_str_cache: dict[bool, ir.GlobalVariable] = {}
+
+        self.__init_builtins()
+
+    def __init_builtins(self):
+        def __init_print():
+            ftype = ir.FunctionType(
+                ir.IntType(32),
+                [ir.IntType(8).as_pointer()],
+                var_arg=True,
+            )
+            return ir.Function(self.module, ftype, "printf")
+
+        def __init_lime_print_fns():
+            int_fn = ir.Function(
+                self.module,
+                ir.FunctionType(ir.VoidType(), [ir.IntType(32)]),
+                "lime_print_int",
+            )
+            float_fn = ir.Function(
+                self.module,
+                ir.FunctionType(ir.VoidType(), [ir.DoubleType()]),
+                "lime_print_float",
+            )
+            bool_fn = ir.Function(
+                self.module,
+                ir.FunctionType(ir.VoidType(), [ir.IntType(32)]),
+                "lime_print_bool",
+            )
+            str_fn = ir.Function(
+                self.module,
+                ir.FunctionType(
+                    ir.VoidType(),
+                    [ir.IntType(64), ir.PointerType(ir.IntType(8))],
+                ),
+                "lime_print_str",
+            )
+            return {"int": int_fn, "float": float_fn, "bool": bool_fn, "str": str_fn}
+
+        self.env.define("print", __init_print(), ir.IntType(32))
+        self._lime_print = __init_lime_print_fns()
 
     def compile(self, node: Node) -> None:
         match node.type():
@@ -64,6 +112,8 @@ class Compiler:
                 self.__visit_bin_expr(cast(BinaryExpression, node))
             case NodeType.AssignmentExpression:
                 self.__visit_assign_expr(cast(AssignmentExpression, node))
+            case NodeType.CallExpression:
+                self.__visit_call_expr(cast(CallExpression, node))
 
             case _:
                 raise ValueError(f"Unhandled compile path {node.type()}")
@@ -106,7 +156,6 @@ class Compiler:
         if node.alternate is None:
             with self.builder.if_then(cond):
                 self.compile(node.consequence)
-            # merge block is the real fallthrough continuation — leave it alone
         else:
             with self.builder.if_else(cond) as (true, otherwise):
                 with true:
@@ -159,7 +208,6 @@ class Compiler:
         self.env = Environment(parent=self.env)
         self.builder = ir.IRBuilder(block)
 
-        # store ptr of each params
         params_ptr = []
         for i, typ in enumerate(param_types):
             ptr = self.builder.alloca(typ)
@@ -296,27 +344,31 @@ class Compiler:
         self, node: CallExpression
     ) -> tuple[ir.Value, ir.Type] | None:
         callee_name = cast(IdentifierLiteral, node.callee).value
-        args: list[tuple[ir.Value, ir.Type] | None] = [
+
+        resolved_args: list[tuple[ir.Value, ir.Type] | None] = [
             self.__resolve_val(a) for a in node.args
         ]
-
-        args_val: list[ir.Value] = []
-        for a in args:
+        for a in resolved_args:
             if a is None:
+                self.__error(
+                    f"Cannot compile call to '{callee_name}': an argument failed to compile"
+                )
                 return None
+        args: list[tuple[ir.Value, ir.Type]] = cast(
+            list[tuple[ir.Value, ir.Type]], resolved_args
+        )
 
-            args_val.append(a[0])  # a[1] is ir.Value
+        if callee_name == "print":
+            return self.__call_print(args)
 
-        match callee_name:
-            case _:
-                res = self.env.lookup(callee_name)
-                if res is None:
-                    self.__error(f"Cannot call undefined function '{callee_name}'")
-                    return None
+        res = self.env.lookup(callee_name)
+        if res is None:
+            self.__error(f"Cannot call undefined function '{callee_name}'")
+            return None
 
-                fn, _ = res
-                val = self.builder.call(fn, args_val)
-                return val, val.type
+        fn, _ = res
+        val = self.builder.call(fn, [v for v, _ in args])
+        return val, val.type
 
     # endregion
 
@@ -344,6 +396,10 @@ class Compiler:
                 typ = self.type_map[key]
                 return ir.Constant(typ, value), typ
 
+            case NodeType.StringLiteral:
+                n = cast(StringLiteral, node).value
+                return self.__conv_to_string(n)
+
             case NodeType.IdentifierLiteral:
                 ident_node: IdentifierLiteral = cast(IdentifierLiteral, node)
                 result = self.env.lookup(ident_node.value)
@@ -369,5 +425,71 @@ class Compiler:
 
     def __error(self, msg: str) -> None:
         self.errors.append(msg)
+
+    def __make_raw_cstr_global(self, text: str, tag: str) -> ir.GlobalVariable:
+        encoded = text.encode("utf8")
+        str_type = ir.ArrayType(ir.IntType(8), len(encoded))
+        str_const = ir.Constant(str_type, bytearray(encoded))
+
+        g = ir.GlobalVariable(self.module, str_type, name=tag)
+        g.linkage = "internal"
+        g.global_constant = True
+        g.initializer = str_const  # type: ignore[assignment]
+        return g
+
+    def __conv_to_string(self, string: str) -> tuple[ir.Value, ir.Type]:
+        encoded = string.encode("utf8")
+        length = len(encoded)
+
+        global_str = self.__make_raw_cstr_global(
+            string, f"__str_{self.__next_string_id()}"
+        )
+        data_ptr = self.__gep_to_i8ptr(global_str)
+
+        string_type = self.type_map["string"]
+        struct_val = ir.Constant(string_type, ir.Undefined)
+        struct_val = self.builder.insert_value(
+            struct_val, ir.Constant(ir.IntType(64), length), 0
+        )
+        struct_val = self.builder.insert_value(struct_val, data_ptr, 1)
+
+        return struct_val, string_type
+
+    def __gep_to_i8ptr(self, global_val: ir.GlobalVariable) -> ir.Value:
+        zero = ir.Constant(ir.IntType(32), 0)
+        return self.builder.gep(global_val, [zero, zero], inbounds=True)
+
+    def __call_print(
+        self, args: list[tuple[ir.Value, ir.Type]]
+    ) -> tuple[ir.Value, ir.Type]:
+        for val, typ in args:
+            if isinstance(typ, ir.IntType) and typ.width == 1:
+                widened = self.builder.zext(val, ir.IntType(32))
+                self.builder.call(self._lime_print["bool"], [widened])
+
+            elif isinstance(typ, ir.IntType):
+                self.builder.call(self._lime_print["int"], [val])
+
+            elif isinstance(typ, ir.FloatType):
+                promoted = self.builder.fpext(val, ir.DoubleType())
+                self.builder.call(self._lime_print["float"], [promoted])
+
+            elif isinstance(typ, ir.DoubleType):
+                self.builder.call(self._lime_print["float"], [val])
+
+            elif typ == self.type_map["string"]:
+                length = self.builder.extract_value(val, 0)
+                data = self.builder.extract_value(val, 1)
+                self.builder.call(self._lime_print["str"], [length, data])
+
+            else:
+                self.__error(f"'print' does not support argument type {typ}")
+                return ir.Constant(ir.IntType(32), 0), ir.IntType(32)
+
+        return ir.Constant(ir.IntType(32), 0), ir.IntType(32)
+
+    def __next_string_id(self) -> int:
+        self._string_counter += 1
+        return self._string_counter
 
     # endregion

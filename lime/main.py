@@ -72,6 +72,7 @@ def main():
             print(e)
             raise
 
+        llvm.load_library_permanently("./runtime/liblime_runtime.so")
         target_machine = llvm.Target.from_default_triple().create_target_machine()
 
         pto = llvm.create_pipeline_tuning_options(speed_level=2, size_level=0)
