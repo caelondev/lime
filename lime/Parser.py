@@ -9,6 +9,7 @@ from AST import (
     BooleanLiteral,
     CallExpression,
     FunctionDeclarationStatement,
+    FunctionHeader,
     IfStatement,
     ReturnStatement,
     Statement,
@@ -113,6 +114,9 @@ class Parser:
                 return self.__parse_return_stmt()
             case TokenType.IF:
                 return self.__parse_if_stmt()
+            # case TokenType.EXTERN:
+            #     return self.__parse_extern_stmt()
+
             case _:
                 return self.__parse_expr_stmt()
 
@@ -218,13 +222,12 @@ class Parser:
 
         return ret
 
-    def __parse_fn_decl_stmt(self) -> FunctionDeclarationStatement | None:
-        fn_stmt = FunctionDeclarationStatement()
+    def __parse_fn_header_stmt(self) -> FunctionHeader | None:
         if not self.__expect_peek(TokenType.IDENTIFIER):
             self.__recover()
             return None
 
-        fn_stmt.name = IdentifierLiteral(self.__cur().literal)
+        name = IdentifierLiteral(self.__cur().literal)
 
         if not self.__expect_peek(TokenType.LEFT_PARENTHESIS):
             self.__recover()
@@ -235,8 +238,6 @@ class Parser:
             self.__recover()
             return None
 
-        fn_stmt.params = params
-
         if not self.__expect_peek(TokenType.ARROW):
             self.__recover()
             return None
@@ -245,7 +246,14 @@ class Parser:
             self.__recover()
             return None
 
-        fn_stmt.ret_type = self.__cur().literal
+        ret_type = self.__cur().literal
+        return FunctionHeader(name, params, ret_type)
+
+    def __parse_fn_decl_stmt(self) -> FunctionDeclarationStatement | None:
+        header = self.__parse_fn_header_stmt()
+        if header is None:
+            self.__recover()
+            return None
 
         if not self.__expect_peek(TokenType.LEFT_BRACE):
             self.__recover()
@@ -256,9 +264,7 @@ class Parser:
             self.__recover()
             return None
 
-        fn_stmt.body = body
-
-        return fn_stmt
+        return FunctionDeclarationStatement(header, body)
 
     # endregion
 

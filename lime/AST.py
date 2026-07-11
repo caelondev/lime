@@ -12,6 +12,7 @@ class NodeType(Enum):
     VariableDeclarationStatement = "VariableDeclarationStatement"
     IfStatement = "IfStatement"
     FunctionDeclarationStatement = "FunctionDeclarationStatement"
+    ExternStatement = "ExternStatement"
     BlockStatement = "BlockStatement"
     ReturnStatement = "ReturnStatement"
 
@@ -27,6 +28,7 @@ class NodeType(Enum):
 
     # Helpers
     FunctionParameter = "FunctionParameter"
+    FunctionHeader = "FunctionHeader"
 
 
 class Node(ABC):
@@ -77,6 +79,30 @@ class FunctionParameter(Expression):
             "type": self.type().value,
             "name": self.name,
             "value_type": self.value_type,
+        }
+
+
+class FunctionHeader(Statement):
+    def __init__(
+        self,
+        name=None,
+        params: list[FunctionParameter] = [],
+        ret_type: str | None = None,
+    ) -> None:
+        self.name = name
+        self.params = params
+        self.ret_type = ret_type
+
+    def type(self) -> NodeType:
+        return NodeType.FunctionHeader
+
+    def json(self) -> dict:
+        assert self.name is not None
+        return {
+            "type": self.type().value,
+            "name": self.name.json(),
+            "params": [p.json() for p in self.params],
+            "ret_type": self.ret_type,
         }
 
 
@@ -169,30 +195,20 @@ class IfStatement(Statement):
 class FunctionDeclarationStatement(Statement):
     def __init__(
         self,
-        name=None,
-        params: list[FunctionParameter] = [],
-        ret_type: str | None = None,
+        header: FunctionHeader,
         body: BlockStatement | None = None,
     ) -> None:
-        self.params = params
+        self.header = header
         self.body = body
-        self.ret_type = ret_type
-        self.name = name
 
     def type(self) -> NodeType:
         return NodeType.FunctionDeclarationStatement
 
     def json(self) -> dict:
-        assert (
-            self.ret_type is not None
-            and self.body is not None
-            and self.name is not None
-        )
+        assert self.body is not None
         return {
             "type": self.type().value,
-            "name": self.name.json(),
-            "params": [expr.json() for expr in self.params],
-            "ret_type": self.ret_type,
+            "header": self.header.json(),
             "body": self.body.json(),
         }
 

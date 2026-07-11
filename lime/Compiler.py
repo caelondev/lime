@@ -188,14 +188,15 @@ class Compiler:
         self.builder.ret(val)
 
     def __visit_fn_decl_stmt(self, node: FunctionDeclarationStatement) -> None:
-        assert node.body is not None and node.ret_type is not None
+        header = node.header
+        assert node.body is not None and header.ret_type is not None
 
-        name: str = cast(IdentifierLiteral, node.name).value
+        name: str = cast(IdentifierLiteral, header.name).value
         body: BlockStatement = node.body
-        params: list[FunctionParameter] = node.params
+        params: list[FunctionParameter] = header.params
         param_names: list[str] = [p.name for p in params]
         param_types: list[ir.Type] = [self.type_map[p.value_type] for p in params]
-        ret_type: ir.Type = self.type_map[node.ret_type]
+        ret_type: ir.Type = self.type_map[header.ret_type]
 
         fn_type = ir.FunctionType(ret_type, param_types)
         fn = ir.Function(self.module, fn_type, name)
@@ -344,7 +345,6 @@ class Compiler:
         self, node: CallExpression
     ) -> tuple[ir.Value, ir.Type] | None:
         callee_name = cast(IdentifierLiteral, node.callee).value
-
         resolved_args: list[tuple[ir.Value, ir.Type] | None] = [
             self.__resolve_val(a) for a in node.args
         ]
@@ -360,6 +360,8 @@ class Compiler:
 
         if callee_name == "print":
             return self.__call_print(args)
+        elif callee_name == "type":
+            return self.__call_type(args)
 
         res = self.env.lookup(callee_name)
         if res is None:
@@ -487,6 +489,29 @@ class Compiler:
                 return ir.Constant(ir.IntType(32), 0), ir.IntType(32)
 
         return ir.Constant(ir.IntType(32), 0), ir.IntType(32)
+
+    def __call_type(
+        self, args: list[tuple[ir.Value, ir.Type]]
+    ) -> tuple[ir.Value, ir.Type] | None:
+        if len(args) != 1:
+            self.__error(f"'type_name' expects exactly 1 argument, got {len(args)}")
+            return None
+
+        _, typ = args[0]
+        name = self.__type_to_name(typ)
+        return self.__conv_to_string(name)
+
+    def __type_to_name(self, typ: ir.Type) -> str:
+        if isinstance(typ, ir.IntType) and typ.width == 1:
+            return "bool"
+        elif isinstance(typ, ir.IntType):
+            return "int"
+        elif isinstance(typ, (ir.FloatType, ir.DoubleType)):
+            return "float"
+        elif typ == self.type_map["string"]:
+            return "string"
+        else:
+            return "unknown"
 
     def __next_string_id(self) -> int:
         self._string_counter += 1

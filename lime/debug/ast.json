@@ -4,27 +4,18 @@
         {
             "FunctionDeclarationStatement": {
                 "type": "FunctionDeclarationStatement",
-                "name": {
-                    "type": "IdentifierLiteral",
-                    "identifier": "main"
+                "header": {
+                    "type": "FunctionHeader",
+                    "name": {
+                        "type": "IdentifierLiteral",
+                        "identifier": "main"
+                    },
+                    "params": [],
+                    "ret_type": "int"
                 },
-                "params": [],
-                "ret_type": "int",
                 "body": {
                     "type": "BlockStatement",
                     "statements": [
-                        {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
-                                "type": "IdentifierLiteral",
-                                "identifier": "x"
-                            },
-                            "value": {
-                                "type": "StringLiteral",
-                                "string": "true"
-                            },
-                            "value_type": "string"
-                        },
                         {
                             "type": "ExpressionStatement",
                             "expr": {
@@ -38,12 +29,12 @@
                                         "type": "CallExpression",
                                         "callee": {
                                             "type": "IdentifierLiteral",
-                                            "identifier": "print"
+                                            "identifier": "type"
                                         },
                                         "args": [
                                             {
-                                                "type": "IdentifierLiteral",
-                                                "identifier": "x"
+                                                "type": "StringLiteral",
+                                                "string": ""
                                             }
                                         ]
                                     }
