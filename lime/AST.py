@@ -227,6 +227,27 @@ class ReturnStatement(Statement):
         return {"type": self.type().value, "return_value": None}
 
 
+class ExternStatement(Statement):
+    def __init__(
+        self,
+        abi: Expression,
+        fns: list[FunctionHeader],  # TODO: Implement more statements
+    ) -> None:
+        self.abi = abi
+        self.fns = fns
+        pass
+
+    def type(self) -> NodeType:
+        return NodeType.ExternStatement
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "abi": self.abi.json(),
+            "fns": [f.json() for f in self.fns],
+        }
+
+
 # region Expression
 class BinaryExpression(Expression):
     def __init__(

@@ -8,6 +8,7 @@ from AST import (
     BlockStatement,
     BooleanLiteral,
     CallExpression,
+    ExternStatement,
     FunctionDeclarationStatement,
     FunctionHeader,
     IfStatement,
@@ -114,8 +115,8 @@ class Parser:
                 return self.__parse_return_stmt()
             case TokenType.IF:
                 return self.__parse_if_stmt()
-            # case TokenType.EXTERN:
-            #     return self.__parse_extern_stmt()
+            case TokenType.EXTERN:
+                return self.__parse_extern_stmt()
 
             case _:
                 return self.__parse_expr_stmt()
@@ -265,6 +266,45 @@ class Parser:
             return None
 
         return FunctionDeclarationStatement(header, body)
+
+    def __parse_extern_stmt(self) -> ExternStatement | None:
+        self.__next_token()  # eat EXTERN
+        abi = self.__parse_expr(PrecedenceType.P_LOWEST)
+
+        if abi is None:
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.LEFT_BRACE):
+            self.__recover()
+            return None
+
+        fns: list[FunctionHeader] = []
+
+        if self.__peek_token_is(TokenType.RIGHT_BRACE):
+            self.__next_token()  # eat LEFT_BRACE
+            return ExternStatement(abi, fns)
+
+        while (
+            not self.__peek_token_is(TokenType.RIGHT_BRACE) and not self.__is_at_eof()
+        ):
+            if not self.__expect_peek(TokenType.FN):
+                self.__recover([TokenType.RIGHT_BRACE])
+                return None
+
+            h_stmt = self.__parse_fn_header_stmt()
+            if h_stmt is None:
+                self.__recover([TokenType.RIGHT_BRACE])
+                return None
+
+            if not self.__expect_peek(TokenType.SEMICOLON):
+                self.__recover([TokenType.RIGHT_BRACE])
+                return None
+
+            fns.append(h_stmt)
+
+        self.__next_token()  # eat RIGHT_BRACE
+        return ExternStatement(abi, fns)
 
     # endregion
 
