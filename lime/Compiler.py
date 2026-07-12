@@ -120,6 +120,10 @@ class Compiler:
 
     def __visit_program(self, node: Program) -> None:
         for stmt in node.statements:
+            if stmt.type() == NodeType.FunctionDeclarationStatement:
+                self.__hoist_fn_sign(cast(FunctionDeclarationStatement, stmt))
+
+        for stmt in node.statements:
             self.compile(stmt)
 
     # region Statements
@@ -189,23 +193,23 @@ class Compiler:
 
     def __visit_fn_decl_stmt(self, node: FunctionDeclarationStatement) -> None:
         header = node.header
-        assert node.body is not None and header.ret_type is not None
+        assert node.body is not None
 
-        name: str = cast(IdentifierLiteral, header.name).value
-        body: BlockStatement = node.body
-        params: list[FunctionParameter] = header.params
-        param_names: list[str] = [p.name for p in params]
-        param_types: list[ir.Type] = [self.type_map[p.value_type] for p in params]
-        ret_type: ir.Type = self.type_map[header.ret_type]
+        name = cast(IdentifierLiteral, header.name).value
+        body = node.body
+        params = header.params
+        param_names = [p.name for p in params]
 
-        fn_type = ir.FunctionType(ret_type, param_types)
-        fn = ir.Function(self.module, fn_type, name)
-        self.env.define(name, fn, fn_type)
+        res = self.env.lookup_current(name)
+        assert res is not None, f"'{name}' should have been hoisted already"
+        fn = cast(ir.Function, res[0])
+        fn_type = cast(ir.FunctionType, res[1])
+        param_types = fn_type.args
 
         prev_builder = self.builder
         prev_env = self.env
 
-        block: ir.Block = fn.append_basic_block(f"{name}_entry")
+        block = fn.append_basic_block(f"{name}_entry")
         self.env = Environment(parent=self.env)
         self.builder = ir.IRBuilder(block)
 
@@ -215,9 +219,8 @@ class Compiler:
             self.builder.store(fn.args[i], ptr)
             params_ptr.append(ptr)
 
-        for i, (t, name) in enumerate(zip(param_types, param_names)):
-            ptr = params_ptr[i]
-            self.env.define(name, ptr, t)
+        for i, (t, pname) in enumerate(zip(param_types, param_names)):
+            self.env.define(pname, params_ptr[i], t)
 
         self.compile(body)
 
@@ -308,6 +311,65 @@ class Compiler:
                 case _:
                     self.__error(f"Unsupported float binary operator '{op}'")
                     return None
+        elif ltype == self.type_map["string"] and rtype == self.type_map["string"]:
+            if op not in (TokenType.EQUAL, TokenType.NOT_EQUAL):
+                self.__error(f"Unsupported string binary operator '{op}'")
+                return None
+
+            l_len = self.builder.extract_value(left, 0)
+            l_ptr = self.builder.extract_value(left, 1)
+            r_len = self.builder.extract_value(right, 0)
+            r_ptr = self.builder.extract_value(right, 1)
+
+            entry_block = self.builder.block
+
+            same_len = self.builder.icmp_signed("==", l_len, r_len)
+
+            loop_cond_block = self.builder.append_basic_block("streq_loop_cond")
+            loop_body_block = self.builder.append_basic_block("streq_loop_body")
+            merge_block = self.builder.append_basic_block("streq_merge")
+
+            self.builder.cbranch(same_len, loop_cond_block, merge_block)
+
+            self.builder.position_at_end(loop_cond_block)
+            i_phi = self.builder.phi(ir.IntType(64), name="i")
+            i_phi.add_incoming(ir.Constant(ir.IntType(64), 0), entry_block)
+
+            in_bounds = self.builder.icmp_signed("<", i_phi, l_len)
+            self.builder.cbranch(in_bounds, loop_body_block, merge_block)
+            loop_cond_end = self.builder.block
+
+            # loop_body: compare byte i of each string
+            #            mismatch -> jump straight to merge as "not equal"
+            #            match    -> increment i, back to loop_cond
+            self.builder.position_at_end(loop_body_block)
+            l_byte_ptr = self.builder.gep(l_ptr, [i_phi], inbounds=True)
+            r_byte_ptr = self.builder.gep(r_ptr, [i_phi], inbounds=True)
+            l_byte = self.builder.load(l_byte_ptr)
+            r_byte = self.builder.load(r_byte_ptr)
+            byte_match = self.builder.icmp_signed("==", l_byte, r_byte)
+
+            i_next = self.builder.add(i_phi, ir.Constant(ir.IntType(64), 1))
+            self.builder.cbranch(byte_match, loop_cond_block, merge_block)
+            loop_body_end = self.builder.block
+
+            i_phi.add_incoming(i_next, loop_body_end)
+
+            # merge: entry_block (lengths differed) -> false
+            #        loop_cond_block (ran out of bytes clean) -> true
+            #        loop_body_block (mismatch found) -> false
+            self.builder.position_at_end(merge_block)
+            result_phi = self.builder.phi(ir.IntType(1), name="streq_result")
+            result_phi.add_incoming(ir.Constant(ir.IntType(1), 0), entry_block)
+            result_phi.add_incoming(ir.Constant(ir.IntType(1), 1), loop_cond_end)
+            result_phi.add_incoming(ir.Constant(ir.IntType(1), 0), loop_body_end)
+
+            if op == TokenType.NOT_EQUAL:
+                result = cast(ir.Value, self.builder.not_(result_phi))
+            else:
+                result = result_phi
+
+            return result, self.type_map["bool"]
         else:
             self.__error(
                 f"Mismatched or unsupported operand types in binary expression: "
@@ -375,6 +437,22 @@ class Compiler:
     # endregion
 
     # region Helpers
+    def __hoist_fn_sign(self, node: FunctionDeclarationStatement) -> None:
+        header = node.header
+        assert header.ret_type is not None
+
+        name = cast(IdentifierLiteral, header.name).value
+
+        if self.env.lookup_current(name) is not None:
+            self.__error(f"Cannot redeclare function '{name}'")
+            return
+
+        param_types = [self.type_map[p.value_type] for p in header.params]
+        ret_type = self.type_map[header.ret_type]
+        fn_type = ir.FunctionType(ret_type, param_types)
+        fn = ir.Function(self.module, fn_type, name)
+        self.env.define(name, fn, fn_type)
+
     def __resolve_val(
         self, node: Expression, val_type: str | None = None
     ) -> tuple[ir.Value, ir.Type] | None:

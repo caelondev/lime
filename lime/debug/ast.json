@@ -29,12 +29,16 @@
                                         "type": "CallExpression",
                                         "callee": {
                                             "type": "IdentifierLiteral",
-                                            "identifier": "type"
+                                            "identifier": "add"
                                         },
                                         "args": [
                                             {
-                                                "type": "StringLiteral",
-                                                "string": ""
+                                                "type": "IntegerLiteral",
+                                                "integer": 1
+                                            },
+                                            {
+                                                "type": "IntegerLiteral",
+                                                "integer": 1
                                             }
                                         ]
                                     }
@@ -46,6 +50,51 @@
                             "return_value": {
                                 "type": "IntegerLiteral",
                                 "integer": 0
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "FunctionDeclarationStatement": {
+                "type": "FunctionDeclarationStatement",
+                "header": {
+                    "type": "FunctionHeader",
+                    "name": {
+                        "type": "IdentifierLiteral",
+                        "identifier": "add"
+                    },
+                    "params": [
+                        {
+                            "type": "FunctionParameter",
+                            "name": "a",
+                            "value_type": "int"
+                        },
+                        {
+                            "type": "FunctionParameter",
+                            "name": "b",
+                            "value_type": "int"
+                        }
+                    ],
+                    "ret_type": "int"
+                },
+                "body": {
+                    "type": "BlockStatement",
+                    "statements": [
+                        {
+                            "type": "ReturnStatement",
+                            "return_value": {
+                                "type": "BinaryExpression",
+                                "left": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "a"
+                                },
+                                "operator": "PLUS",
+                                "right": {
+                                    "type": "IdentifierLiteral",
+                                    "identifier": "b"
+                                }
                             }
                         }
                     ]
