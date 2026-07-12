@@ -255,7 +255,7 @@ class LinkStatement(Statement):
         pass
 
     def type(self) -> NodeType:
-        return NodeType.ExternStatement
+        return NodeType.LinkStatement
 
     def json(self) -> dict:
         return {

@@ -1,4 +1,4 @@
-link "./runtime/liblime_runtime.so";
+link "runtime/add.so";
 
 extern "C" {
   fn add(a: int, b: int) -> int;

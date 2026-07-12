@@ -2,9 +2,9 @@
     "type": "Program",
     "statements": [
         {
-            "ExternStatement": {
-                "type": "ExternStatement",
-                "path": "./runtime/liblime_runtime.so"
+            "LinkStatement": {
+                "type": "LinkStatement",
+                "path": "runtime/add.so"
             }
         },
         {

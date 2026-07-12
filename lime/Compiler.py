@@ -1,6 +1,7 @@
 from typing import cast
 
 from llvmlite import ir
+import llvmlite.binding as llvm
 
 from AST import (
     AssignmentExpression,
@@ -8,8 +9,8 @@ from AST import (
     CallExpression,
     ExternStatement,
     FunctionHeader,
-    FunctionParameter,
     IfStatement,
+    LinkStatement,
     Node,
     NodeType,
     Expression,
@@ -48,7 +49,9 @@ class Compiler:
         self.builder: ir.IRBuilder = ir.IRBuilder()
         self.env = Environment()
         self.errors: list[str] = []
+
         self._string_counter = 0
+        self._linked_libs: set[str] = {"./runtime/liblime_runtime.so"}
 
         self._bool_str_cache: dict[bool, ir.GlobalVariable] = {}
 
@@ -125,6 +128,7 @@ class Compiler:
     def __visit_program(self, node: Program) -> None:
         # hoist
         for stmt in node.statements:
+            # functions
             if stmt.type() == NodeType.FunctionDeclarationStatement:
                 self.__hoist_fn_sign(
                     cast(
@@ -132,11 +136,18 @@ class Compiler:
                     )
                 )
 
+            # externs
             if stmt.type() == NodeType.ExternStatement:
                 self.__visit_extern_stmt(cast(ExternStatement, stmt))
 
+            # links
+            if stmt.type() == NodeType.LinkStatement:
+                self.__visit_link_stmt(cast(LinkStatement, stmt))
+
         for stmt in node.statements:
             if stmt.type() == NodeType.ExternStatement:
+                continue
+            if stmt.type() == NodeType.LinkStatement:
                 continue
             self.compile(stmt)
 
@@ -204,6 +215,21 @@ class Compiler:
 
         val, _ = resolved
         self.builder.ret(val)
+
+    def __visit_link_stmt(self, node: LinkStatement) -> None:
+        path = node.path
+
+        if path in self._linked_libs:
+            self.__error(f"Library '{path}' is already linked")
+            return
+
+        try:
+            llvm.load_library_permanently(path)
+        except RuntimeError as e:
+            self.__error(f"Failed to load library '{path}': {e}")
+            return
+
+        self._linked_libs.add(path)
 
     def __visit_extern_stmt(self, node: ExternStatement) -> None:
         abi_node = node.abi
