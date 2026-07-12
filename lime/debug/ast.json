@@ -24,7 +24,7 @@
                             },
                             "value": {
                                 "type": "IntegerLiteral",
-                                "integer": 10
+                                "integer": 0
                             },
                             "value_type": "int"
                         },

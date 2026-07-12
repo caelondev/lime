@@ -16,6 +16,7 @@ from AST import (
     Expression,
     Program,
     StringLiteral,
+    WhileLoopStatement,
 )
 from AST import (
     ExpressionStatement,
@@ -50,7 +51,7 @@ class Compiler:
         self.env = Environment()
         self.errors: list[str] = []
 
-        self._string_counter = 0
+        self._counter = 0  # to avoid collisions
         self._linked_libs: set[str] = {"./runtime/liblime_runtime.so"}
 
         self._bool_str_cache: dict[bool, ir.GlobalVariable] = {}
@@ -114,6 +115,8 @@ class Compiler:
                 self.__visit_ret_stmt(cast(ReturnStatement, node))
             case NodeType.ExternStatement:
                 self.__visit_extern_stmt(cast(ExternStatement, node))
+            case NodeType.WhileLoopStatement:
+                self.__visit_while_loop_stmt(cast(WhileLoopStatement, node))
 
             case NodeType.BinaryExpression:
                 self.__visit_bin_expr(cast(BinaryExpression, node))
@@ -248,6 +251,31 @@ class Compiler:
 
         for header in node.fns:
             self.__hoist_fn_sign(header)
+
+    def __visit_while_loop_stmt(self, node: WhileLoopStatement) -> None:
+        cond_bb = self.builder.append_basic_block(
+            f"while.cond.{self.__next_counter_id()}"
+        )
+        body_bb = self.builder.append_basic_block(f"while.body.{self._counter}")
+        end_bb = self.builder.append_basic_block(f"while.end.{self._counter}")
+
+        self.builder.branch(cond_bb)
+
+        self.builder.position_at_end(cond_bb)
+        val = self.__resolve_val(node.condition)
+        if val is None:
+            self.__error("Cannot compile 'while' loop: its condition failed to compile")
+            return None
+
+        cond, _ = val
+
+        self.builder.cbranch(cond, body_bb, end_bb)
+
+        self.builder.position_at_end(body_bb)
+        self.compile(node.body)
+        self.builder.branch(cond_bb)
+
+        self.builder.position_at_end(end_bb)
 
     def __visit_fn_decl_stmt(self, node: FunctionDeclarationStatement) -> None:
         header = node.header
@@ -579,7 +607,7 @@ class Compiler:
         length = len(encoded)
 
         global_str = self.__make_raw_cstr_global(
-            string, f"__str_{self.__next_string_id()}"
+            string, f"__str_{self.__next_counter_id()}"
         )
         data_ptr = self.__gep_to_i8ptr(global_str)
 
@@ -648,8 +676,8 @@ class Compiler:
         else:
             return "unknown"
 
-    def __next_string_id(self) -> int:
-        self._string_counter += 1
-        return self._string_counter
+    def __next_counter_id(self) -> int:
+        self._counter += 1
+        return self._counter
 
     # endregion
