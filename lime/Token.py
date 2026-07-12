@@ -53,6 +53,7 @@ class TokenType(Enum):
     FALSE = "FALSE"
     LINK = "LINK"
     EXTERN = "EXTERN"
+    WHILE = "WHILE"
 
 
 class Token:
@@ -79,6 +80,7 @@ KEYWORDS: dict[str, TokenType] = {
     "else": TokenType.ELSE,
     "true": TokenType.TRUE,
     "false": TokenType.FALSE,
+    "while": TokenType.WHILE,
 }
 
 TYPE_KEYWORDS: list[str] = [

@@ -18,6 +18,7 @@ from AST import (
     Expression,
     Program,
     StringLiteral,
+    WhileLoopStatement,
 )
 from AST import ExpressionStatement, VariableDeclarationStatement, FunctionParameter
 from AST import BinaryExpression
@@ -120,6 +121,8 @@ class Parser:
                 return self.__parse_link_stmt()
             case TokenType.EXTERN:
                 return self.__parse_extern_stmt()
+            case TokenType.WHILE:
+                return self.__parse_while_loop_stmt()
 
             case _:
                 return self.__parse_expr_stmt()
@@ -321,6 +324,25 @@ class Parser:
 
         self.__next_token()  # eat RIGHT_BRACE
         return ExternStatement(abi, fns)
+
+    def __parse_while_loop_stmt(self) -> WhileLoopStatement | None:
+        self.__next_token()  # eat WHILE
+
+        cond = self.__parse_expr(PrecedenceType.P_LOWEST)
+        if cond is None:
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.LEFT_BRACE):
+            self.__recover()
+            return None
+
+        body = self.__parse_block_stmt()
+        if body is None:
+            self.__recover()
+            return None
+
+        return WhileLoopStatement(cond, body)
 
     # endregion
 

@@ -16,6 +16,7 @@ class NodeType(Enum):
     BlockStatement = "BlockStatement"
     ReturnStatement = "ReturnStatement"
     LinkStatement = "LinkStatement"
+    WhileLoopStatement = "WhileLoopStatement"
 
     # Expressions
     AssignmentExpression = "AssignmentExpression"
@@ -261,6 +262,22 @@ class LinkStatement(Statement):
         return {
             "type": self.type().value,
             "path": self.path,
+        }
+
+
+class WhileLoopStatement(Statement):
+    def __init__(self, condition: Expression, body: BlockStatement) -> None:
+        self.condition = condition
+        self.body = body
+
+    def type(self) -> NodeType:
+        return NodeType.WhileLoopStatement
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "condition": self.condition.json(),
+            "body": self.body.json(),
         }
 
 

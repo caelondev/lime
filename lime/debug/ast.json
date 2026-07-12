@@ -2,43 +2,6 @@
     "type": "Program",
     "statements": [
         {
-            "LinkStatement": {
-                "type": "LinkStatement",
-                "path": "runtime/add.so"
-            }
-        },
-        {
-            "ExternStatement": {
-                "type": "ExternStatement",
-                "abi": {
-                    "type": "StringLiteral",
-                    "string": "C"
-                },
-                "fns": [
-                    {
-                        "type": "FunctionHeader",
-                        "name": {
-                            "type": "IdentifierLiteral",
-                            "identifier": "add"
-                        },
-                        "params": [
-                            {
-                                "type": "FunctionParameter",
-                                "name": "a",
-                                "value_type": "int"
-                            },
-                            {
-                                "type": "FunctionParameter",
-                                "name": "b",
-                                "value_type": "int"
-                            }
-                        ],
-                        "ret_type": "int"
-                    }
-                ]
-            }
-        },
-        {
             "FunctionDeclarationStatement": {
                 "type": "FunctionDeclarationStatement",
                 "header": {
@@ -54,30 +17,71 @@
                     "type": "BlockStatement",
                     "statements": [
                         {
-                            "type": "ExpressionStatement",
-                            "expr": {
-                                "type": "CallExpression",
-                                "callee": {
+                            "type": "VariableDeclarationStatement",
+                            "name": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "a"
+                            },
+                            "value": {
+                                "type": "IntegerLiteral",
+                                "integer": 10
+                            },
+                            "value_type": "int"
+                        },
+                        {
+                            "type": "WhileLoopStatement",
+                            "condition": {
+                                "type": "BinaryExpression",
+                                "left": {
                                     "type": "IdentifierLiteral",
-                                    "identifier": "print"
+                                    "identifier": "a"
                                 },
-                                "args": [
+                                "operator": "LESS",
+                                "right": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 10
+                                }
+                            },
+                            "body": {
+                                "type": "BlockStatement",
+                                "statements": [
                                     {
-                                        "type": "CallExpression",
-                                        "callee": {
-                                            "type": "IdentifierLiteral",
-                                            "identifier": "add"
-                                        },
-                                        "args": [
-                                            {
-                                                "type": "IntegerLiteral",
-                                                "integer": 60
+                                        "type": "ExpressionStatement",
+                                        "expr": {
+                                            "type": "CallExpression",
+                                            "callee": {
+                                                "type": "IdentifierLiteral",
+                                                "identifier": "print"
                                             },
-                                            {
-                                                "type": "IntegerLiteral",
-                                                "integer": 7
+                                            "args": [
+                                                {
+                                                    "type": "IdentifierLiteral",
+                                                    "identifier": "a"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "type": "ExpressionStatement",
+                                        "expr": {
+                                            "type": "AssignmentExpression",
+                                            "assignee": {
+                                                "type": "IdentifierLiteral",
+                                                "identifier": "a"
+                                            },
+                                            "value": {
+                                                "type": "BinaryExpression",
+                                                "left": {
+                                                    "type": "IdentifierLiteral",
+                                                    "identifier": "a"
+                                                },
+                                                "operator": "PLUS",
+                                                "right": {
+                                                    "type": "IntegerLiteral",
+                                                    "integer": 1
+                                                }
                                             }
-                                        ]
+                                        }
                                     }
                                 ]
                             }
