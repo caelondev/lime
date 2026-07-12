@@ -2,6 +2,37 @@
     "type": "Program",
     "statements": [
         {
+            "ExternStatement": {
+                "type": "ExternStatement",
+                "abi": {
+                    "type": "StringLiteral",
+                    "string": "C"
+                },
+                "fns": [
+                    {
+                        "type": "FunctionHeader",
+                        "name": {
+                            "type": "IdentifierLiteral",
+                            "identifier": "add"
+                        },
+                        "params": [
+                            {
+                                "type": "FunctionParameter",
+                                "name": "a",
+                                "value_type": "int"
+                            },
+                            {
+                                "type": "FunctionParameter",
+                                "name": "b",
+                                "value_type": "int"
+                            }
+                        ],
+                        "ret_type": "int"
+                    }
+                ]
+            }
+        },
+        {
             "FunctionDeclarationStatement": {
                 "type": "FunctionDeclarationStatement",
                 "header": {
@@ -34,11 +65,11 @@
                                         "args": [
                                             {
                                                 "type": "IntegerLiteral",
-                                                "integer": 1
+                                                "integer": 60
                                             },
                                             {
                                                 "type": "IntegerLiteral",
-                                                "integer": 1
+                                                "integer": 7
                                             }
                                         ]
                                     }
@@ -54,26 +85,6 @@
                         }
                     ]
                 }
-            }
-        },
-        {
-            "ExternStatement": {
-                "type": "ExternStatement",
-                "abi": {
-                    "type": "StringLiteral",
-                    "string": "C"
-                },
-                "fns": [
-                    {
-                        "type": "FunctionHeader",
-                        "name": {
-                            "type": "IdentifierLiteral",
-                            "identifier": "main"
-                        },
-                        "params": [],
-                        "ret_type": "int"
-                    }
-                ]
             }
         }
     ]

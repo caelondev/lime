@@ -6,6 +6,8 @@ from AST import (
     AssignmentExpression,
     BooleanLiteral,
     CallExpression,
+    ExternStatement,
+    FunctionHeader,
     FunctionParameter,
     IfStatement,
     Node,
@@ -107,6 +109,8 @@ class Compiler:
                 self.__visit_block_stmt(cast(BlockStatement, node))
             case NodeType.ReturnStatement:
                 self.__visit_ret_stmt(cast(ReturnStatement, node))
+            case NodeType.ExternStatement:
+                self.__visit_extern_stmt(cast(ExternStatement, node))
 
             case NodeType.BinaryExpression:
                 self.__visit_bin_expr(cast(BinaryExpression, node))
@@ -119,11 +123,21 @@ class Compiler:
                 raise ValueError(f"Unhandled compile path {node.type()}")
 
     def __visit_program(self, node: Program) -> None:
+        # hoist
         for stmt in node.statements:
             if stmt.type() == NodeType.FunctionDeclarationStatement:
-                self.__hoist_fn_sign(cast(FunctionDeclarationStatement, stmt))
+                self.__hoist_fn_sign(
+                    cast(
+                        FunctionHeader, cast(FunctionDeclarationStatement, stmt).header
+                    )
+                )
+
+            if stmt.type() == NodeType.ExternStatement:
+                self.__visit_extern_stmt(cast(ExternStatement, stmt))
 
         for stmt in node.statements:
+            if stmt.type() == NodeType.ExternStatement:
+                continue
             self.compile(stmt)
 
     # region Statements
@@ -190,6 +204,24 @@ class Compiler:
 
         val, _ = resolved
         self.builder.ret(val)
+
+    def __visit_extern_stmt(self, node: ExternStatement) -> None:
+        abi_node = node.abi
+
+        if isinstance(abi_node, StringLiteral):
+            abi = abi_node.value
+        elif isinstance(abi_node, IdentifierLiteral):
+            abi = abi_node.value
+        else:
+            self.__error("'extern' ABI must be a string or identifier literal")
+            return
+
+        if abi != "C":
+            self.__error(f"Unsupported extern ABI '{abi}' (only \"C\" is supported)")
+            return
+
+        for header in node.fns:
+            self.__hoist_fn_sign(header)
 
     def __visit_fn_decl_stmt(self, node: FunctionDeclarationStatement) -> None:
         header = node.header
@@ -437,8 +469,7 @@ class Compiler:
     # endregion
 
     # region Helpers
-    def __hoist_fn_sign(self, node: FunctionDeclarationStatement) -> None:
-        header = node.header
+    def __hoist_fn_sign(self, header: FunctionHeader) -> None:
         assert header.ret_type is not None
 
         name = cast(IdentifierLiteral, header.name).value

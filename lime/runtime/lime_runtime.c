@@ -1,6 +1,7 @@
-// lime_runtime.c
 #include <stdint.h>
 #include <stdio.h>
+
+int32_t add(int32_t a, int32_t b) { return a + b; }
 
 void lime_print_int(int32_t x) { printf("%d\n", x); }
 void lime_print_float(double x) { printf("%f\n", x); }
