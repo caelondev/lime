@@ -15,6 +15,7 @@ class NodeType(Enum):
     ExternStatement = "ExternStatement"
     BlockStatement = "BlockStatement"
     ReturnStatement = "ReturnStatement"
+    LinkStatement = "LinkStatement"
 
     # Expressions
     AssignmentExpression = "AssignmentExpression"
@@ -245,6 +246,21 @@ class ExternStatement(Statement):
             "type": self.type().value,
             "abi": self.abi.json(),
             "fns": [f.json() for f in self.fns],
+        }
+
+
+class LinkStatement(Statement):
+    def __init__(self, path: str) -> None:
+        self.path = path
+        pass
+
+    def type(self) -> NodeType:
+        return NodeType.ExternStatement
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "path": self.path,
         }
 
 

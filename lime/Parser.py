@@ -12,6 +12,7 @@ from AST import (
     FunctionDeclarationStatement,
     FunctionHeader,
     IfStatement,
+    LinkStatement,
     ReturnStatement,
     Statement,
     Expression,
@@ -115,6 +116,8 @@ class Parser:
                 return self.__parse_return_stmt()
             case TokenType.IF:
                 return self.__parse_if_stmt()
+            case TokenType.LINK:
+                return self.__parse_link_stmt()
             case TokenType.EXTERN:
                 return self.__parse_extern_stmt()
 
@@ -266,6 +269,19 @@ class Parser:
             return None
 
         return FunctionDeclarationStatement(header, body)
+
+    def __parse_link_stmt(self) -> LinkStatement | None:
+        if not self.__expect_peek(TokenType.STRING):
+            self.__recover()
+            return None
+
+        path = self.__cur().literal
+
+        if not self.__expect_peek(TokenType.SEMICOLON):
+            self.__recover()
+            return None
+
+        return LinkStatement(path)
 
     def __parse_extern_stmt(self) -> ExternStatement | None:
         self.__next_token()  # eat EXTERN

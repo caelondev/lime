@@ -4,6 +4,12 @@
         {
             "ExternStatement": {
                 "type": "ExternStatement",
+                "path": "./runtime/liblime_runtime.so"
+            }
+        },
+        {
+            "ExternStatement": {
+                "type": "ExternStatement",
                 "abi": {
                     "type": "StringLiteral",
                     "string": "C"

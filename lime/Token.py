@@ -51,6 +51,7 @@ class TokenType(Enum):
     RETURN = "RETURN"
     TRUE = "TRUE"
     FALSE = "FALSE"
+    LINK = "LINK"
     EXTERN = "EXTERN"
 
 
@@ -71,6 +72,7 @@ class Token:
 KEYWORDS: dict[str, TokenType] = {
     "let": TokenType.LET,
     "fn": TokenType.FN,
+    "link": TokenType.LINK,
     "extern": TokenType.EXTERN,
     "return": TokenType.RETURN,
     "if": TokenType.IF,
