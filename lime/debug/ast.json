@@ -17,30 +17,65 @@
                     "type": "BlockStatement",
                     "statements": [
                         {
-                            "type": "VariableDeclarationStatement",
-                            "name": {
+                            "type": "ForLoopStatement",
+                            "iterator": {
                                 "type": "IdentifierLiteral",
-                                "identifier": "a"
+                                "identifier": "i"
                             },
-                            "value": {
-                                "type": "IntegerLiteral",
-                                "integer": 0
-                            },
-                            "value_type": "int"
-                        },
-                        {
-                            "type": "WhileLoopStatement",
-                            "condition": {
-                                "type": "BinaryExpression",
-                                "left": {
-                                    "type": "IdentifierLiteral",
-                                    "identifier": "a"
+                            "iterable": {
+                                "type": "RangeExpression",
+                                "start": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 0
                                 },
-                                "operator": "LESS",
-                                "right": {
+                                "end": {
                                     "type": "IntegerLiteral",
                                     "integer": 10
                                 }
+                            },
+                            "steps": {},
+                            "body": {
+                                "type": "BlockStatement",
+                                "statements": [
+                                    {
+                                        "type": "ExpressionStatement",
+                                        "expr": {
+                                            "type": "CallExpression",
+                                            "callee": {
+                                                "type": "IdentifierLiteral",
+                                                "identifier": "print"
+                                            },
+                                            "args": [
+                                                {
+                                                    "type": "IdentifierLiteral",
+                                                    "identifier": "i"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "ForLoopStatement",
+                            "iterator": {
+                                "type": "IdentifierLiteral",
+                                "identifier": "i"
+                            },
+                            "iterable": {
+                                "type": "RangeExpression",
+                                "start": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 0
+                                },
+                                "end": {
+                                    "type": "IntegerLiteral",
+                                    "integer": 10
+                                }
+                            },
+                            "steps": {
+                                "type": "IntegerLiteral",
+                                "integer": 5
                             },
                             "body": {
                                 "type": "BlockStatement",
@@ -56,31 +91,9 @@
                                             "args": [
                                                 {
                                                     "type": "IdentifierLiteral",
-                                                    "identifier": "a"
+                                                    "identifier": "i"
                                                 }
                                             ]
-                                        }
-                                    },
-                                    {
-                                        "type": "ExpressionStatement",
-                                        "expr": {
-                                            "type": "AssignmentExpression",
-                                            "assignee": {
-                                                "type": "IdentifierLiteral",
-                                                "identifier": "a"
-                                            },
-                                            "value": {
-                                                "type": "BinaryExpression",
-                                                "left": {
-                                                    "type": "IdentifierLiteral",
-                                                    "identifier": "a"
-                                                },
-                                                "operator": "PLUS",
-                                                "right": {
-                                                    "type": "IntegerLiteral",
-                                                    "integer": 1
-                                                }
-                                            }
                                         }
                                     }
                                 ]

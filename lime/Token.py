@@ -33,6 +33,9 @@ class TokenType(Enum):
     # Symbols
     COLON = "COLON"
     COMMA = "COMMA"
+    DOT = "DOT"
+    DOTDOT = "DOTDOT"
+    PIPE = "PIPE"
     SEMICOLON = "SEMICOLON"
     ARROW = "ARROW"
     LEFT_PARENTHESIS = "LEFT_PARENTHESIS"
@@ -54,6 +57,7 @@ class TokenType(Enum):
     LINK = "LINK"
     EXTERN = "EXTERN"
     WHILE = "WHILE"
+    FOR = "FOR"
 
 
 class Token:
@@ -81,6 +85,7 @@ KEYWORDS: dict[str, TokenType] = {
     "true": TokenType.TRUE,
     "false": TokenType.FALSE,
     "while": TokenType.WHILE,
+    "for": TokenType.FOR,
 }
 
 TYPE_KEYWORDS: list[str] = [

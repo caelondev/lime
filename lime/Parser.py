@@ -9,10 +9,12 @@ from AST import (
     BooleanLiteral,
     CallExpression,
     ExternStatement,
+    ForLoopStatement,
     FunctionDeclarationStatement,
     FunctionHeader,
     IfStatement,
     LinkStatement,
+    RangeExpression,
     ReturnStatement,
     Statement,
     Expression,
@@ -123,6 +125,8 @@ class Parser:
                 return self.__parse_extern_stmt()
             case TokenType.WHILE:
                 return self.__parse_while_loop_stmt()
+            case TokenType.FOR:
+                return self.__parse_for_loop_stmt()
 
             case _:
                 return self.__parse_expr_stmt()
@@ -344,6 +348,58 @@ class Parser:
 
         return WhileLoopStatement(cond, body)
 
+    def __parse_for_loop_stmt(self) -> ForLoopStatement | None:
+        if not self.__expect_peek(TokenType.IDENTIFIER):
+            self.__recover()
+            return None
+
+        iterator = IdentifierLiteral(self.__cur().literal)
+
+        if not self.__expect_peek(TokenType.COLON):
+            self.__recover()
+            return None
+
+        self.__next_token()  # eat COLON
+        iterable = self.__parse_range_expr()
+        if iterable is None:
+            self.__recover()
+            return None
+
+        # handle `for i : a..b {}`
+        if self.__peek_token_is(TokenType.LEFT_BRACE):
+            self.__next_token()  # eat prev expr token
+            body = self.__parse_block_stmt()
+            if body is None:
+                self.__recover()
+                return None
+            return ForLoopStatement(
+                iterator=iterator, iterable=iterable, body=body, steps=None
+            )
+
+        # handle `for i : a..b |x| {}`
+        if not self.__expect_peek(TokenType.PIPE):
+            self.__recover()
+            return None
+
+        self.__next_token()  # eat PIPE
+        steps = self.__parse_expr(PrecedenceType.P_LOWEST)
+
+        if not self.__expect_peek(TokenType.PIPE):
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.LEFT_BRACE):
+            self.__recover()
+            return None
+
+        body = self.__parse_block_stmt()
+        if body is None:
+            self.__recover()
+            return None
+        return ForLoopStatement(
+            iterator=iterator, iterable=iterable, body=body, steps=steps
+        )
+
     # endregion
 
     # region Statement Helpers
@@ -456,6 +512,24 @@ class Parser:
             return None
 
         return e_list
+
+    def __parse_range_expr(self) -> RangeExpression | None:
+        start = self.__parse_expr(PrecedenceType.P_LOWEST)
+        if start is None:
+            self.__recover()
+            return None
+
+        if not self.__expect_peek(TokenType.DOTDOT):
+            self.__recover()
+            return None
+
+        self.__next_token()  # eat DOTDOT
+        end = self.__parse_expr(PrecedenceType.P_LOWEST)
+        if end is None:
+            self.__recover()
+            return None
+
+        return RangeExpression(start, end)
 
     # endregion
 

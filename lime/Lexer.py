@@ -70,8 +70,17 @@ class Lexer:
                     tok = self.__new_token(TokenType.NOT_EQUAL, ch + self.cur_char)
                 else:
                     tok = self.__new_token(TokenType.ILLEGAL, self.cur_char)
+            case ".":
+                if self.__peak_char() == ".":
+                    ch = self.cur_char
+                    self.__read_char()
+                    tok = self.__new_token(TokenType.DOTDOT, ch + self.cur_char)
+                else:
+                    tok = self.__new_token(TokenType.DOT, self.cur_char)
             case ":":
                 tok = self.__new_token(TokenType.COLON, self.cur_char)
+            case "|":
+                tok = self.__new_token(TokenType.PIPE, self.cur_char)
             case ";":
                 tok = self.__new_token(TokenType.SEMICOLON, self.cur_char)
             case ",":
@@ -93,18 +102,16 @@ class Lexer:
     def __read_number(self) -> Token:
         output = ""
         dot_count = 0
-        start_pos = self.position
 
         while self.cur_char is not None and (
             self.__is_digit(self.cur_char) or self.cur_char == "."
         ):
             if self.cur_char == ".":
+                if (
+                    self.__peak_char() == "."
+                ):  # for case like 0.. (should be 0 and DOTDOT)
+                    break
                 dot_count += 1
-                if dot_count > 1:
-                    return self.__new_token(
-                        TokenType.ILLEGAL,
-                        self.source[start_pos : self.position + 1],
-                    )
 
             output += self.cur_char
             self.__read_char()

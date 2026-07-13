@@ -17,11 +17,14 @@ class NodeType(Enum):
     ReturnStatement = "ReturnStatement"
     LinkStatement = "LinkStatement"
     WhileLoopStatement = "WhileLoopStatement"
+    ForLoopStatement = "ForLoopStatement"
 
     # Expressions
     AssignmentExpression = "AssignmentExpression"
     BinaryExpression = "BinaryExpression"
     CallExpression = "CallExpression"
+    RangeExpression = "RangeExpression"
+
     IntegerLiteral = "IntegerLiteral"
     FloatLiteral = "FloatLiteral"
     BooleanLiteral = "BooleanLiteral"
@@ -281,6 +284,32 @@ class WhileLoopStatement(Statement):
         }
 
 
+class ForLoopStatement(Statement):
+    def __init__(
+        self,
+        iterator: Expression,
+        iterable: Expression,
+        steps: Expression | None,
+        body: BlockStatement,
+    ) -> None:
+        self.iterator = iterator
+        self.iterable = iterable
+        self.steps = steps
+        self.body = body
+
+    def type(self) -> NodeType:
+        return NodeType.ForLoopStatement
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "iterator": self.iterator.json(),
+            "iterable": self.iterable.json(),
+            "steps": self.steps.json() if self.steps else {},
+            "body": self.body.json(),
+        }
+
+
 # region Expression
 class BinaryExpression(Expression):
     def __init__(
@@ -339,6 +368,22 @@ class CallExpression(Expression):
             "type": self.type().value,
             "callee": self.callee.json(),
             "args": [arg.json() for arg in self.args],
+        }
+
+
+class RangeExpression(Expression):
+    def __init__(self, start: Expression, end: Expression) -> None:
+        self.start = start
+        self.end = end
+
+    def type(self) -> NodeType:
+        return NodeType.RangeExpression
+
+    def json(self) -> dict:
+        return {
+            "type": self.type().value,
+            "start": self.start.json(),
+            "end": self.end.json(),
         }
 
 
